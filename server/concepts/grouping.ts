@@ -48,6 +48,13 @@ export default class GroupItemConcept {
     return { msg: "Deleted all instances of group!" };
   }
 
+  // delete item from all groups that it is in
+  // use when deleting an item
+  async deleteItemFromAllGroups(item: ObjectId) {
+    await this.groupitems.deleteMany({ item });
+    return { msg: "Deleted all instances of item!" };
+  }
+
   // assert that an item is in a given group
   async assertItemInGroup(group: ObjectId, item: ObjectId) {
     const pair = await this.groupitems.readOne({ group, item });

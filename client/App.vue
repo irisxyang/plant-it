@@ -22,45 +22,63 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <header>
-    <nav>
-      <div class="title">
-        <img src="@/assets/images/logo.svg" />
-        <RouterLink :to="{ name: 'Home' }">
-          <h1>Social Media App</h1>
-        </RouterLink>
-      </div>
-      <ul>
-        <li>
-          <RouterLink :to="{ name: 'Home' }" :class="{ underline: currentRouteName == 'Home' }"> Home </RouterLink>
-        </li>
-        <li v-if="isLoggedIn">
-          <RouterLink :to="{ name: 'Settings' }" :class="{ underline: currentRouteName == 'Settings' }"> Settings </RouterLink>
-        </li>
-        <li v-else>
-          <RouterLink :to="{ name: 'Login' }" :class="{ underline: currentRouteName == 'Login' }"> Login </RouterLink>
-        </li>
-      </ul>
-    </nav>
-    <article v-if="toast !== null" class="toast" :class="toast.style">
-      <p>{{ toast.message }}</p>
-    </article>
-  </header>
-  <RouterView />
+  <div class="bg">
+    <header>
+      <nav>
+        <div class="title">
+          <img src="@/assets/images/logo.svg" />
+          <RouterLink :to="{ name: 'Home' }">
+            <h1>PlantIt</h1>
+          </RouterLink>
+        </div>
+        <ul>
+          <li>
+            <RouterLink :to="{ name: 'Home' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Home' }"> Home </RouterLink>
+          </li>
+          <li v-if="isLoggedIn">
+            <RouterLink :to="{ name: 'Settings' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Settings' }"> Settings </RouterLink>
+          </li>
+          <li v-else>
+            <RouterLink :to="{ name: 'Login' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Login' }"> Login </RouterLink>
+          </li>
+        </ul>
+      </nav>
+      <article v-if="toast !== null" class="toast" :class="toast.style">
+        <p>{{ toast.message }}</p>
+      </article>
+    </header>
+    <RouterView />
+    <footer>Created by Bouncing Beavers | 2024</footer>
+  </div>
 </template>
 
 <style scoped>
 @import "./assets/toast.css";
 
+.bg {
+  background-color: var(--base-bg);
+}
+
 nav {
-  padding: 1em 2em;
-  background-color: lightgray;
+  padding: 0.5em 2em;
+  background-color: var(--main-accent);
   display: flex;
   align-items: center;
 }
 
+footer {
+  padding: 3em 4em;
+  background-color: var(--main-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1em;
+}
+
 h1 {
-  font-size: 2em;
+  color: white;
+  font-size: 1.75em;
   margin: 0;
 }
 
@@ -76,7 +94,8 @@ img {
 
 a {
   font-size: large;
-  color: black;
+  color: var(--base-bg);
+  font-weight: 400;
   text-decoration: none;
 }
 
@@ -89,7 +108,11 @@ ul {
   gap: 1em;
 }
 
-.underline {
-  text-decoration: underline;
+.nav-link {
+  font-size: 1.2em;
+}
+
+.selected {
+  color: white;
 }
 </style>

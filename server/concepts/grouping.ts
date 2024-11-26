@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
-import { NotFoundError } from "./errors";
+import { NotAllowedError, NotFoundError } from "./errors";
 
 export interface GroupItemDoc extends BaseDoc {
   label: String;
@@ -120,12 +120,24 @@ export default class GroupItemConcept {
    * @returns A list of the labels of all the groups a user is the author of
    * @throws NotFoundError if user is not author of any groups
    */
-  async getGroupsAuthord(author: ObjectId){
+  async getGroupsAuthorId(author: ObjectId){
     const groups = await this.groupitems.readMany({author: author});
     if (!groups){
       throw new NotFoundError(`Author ${author} has not authored any groups!`)
     }
     const labels = groups.map(group => group.label);  //TODO Does not create list of unique titles, but can have repeats. Need to remember TS sets....
     return labels;
+  }
+
+  /**
+   * Checks that a group identified by its author and label does not already exist
+   * @param author ObjectId of the author of the group
+   * @param label Label of the group
+   * @throws NotAllowedError if there is already a group with that author and label
+   */
+  async assertGroupUnique(author: ObjectId, label: String){
+    if(await this.groupitems.readOne({author: author, label: label})){
+      throw new NotAllowedError(`Group with label ${label} and author ${author} already exists}`)
+    }
   }
 }

@@ -158,9 +158,9 @@ class Routes {
   /**
    * create task
    * only project manager can create tasks for that project
-   * TODO: linking functionality? do we add a generic "comments" field that just takes longer string input?
-   * TODO: consider if we should limit the task description length (ex: 100 characters), then have extra "comments"
-   * box for more detail
+   * TODO: consider if we should limit task title length (ex: 100 characters)
+   * TODO: sync with DEADLINING --> each task should have an associated deadline
+   * TODO: decide if tasks must be assigned deadlines?
    */
   @Router.post("/project/tasks")
   async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee?: string) {
@@ -201,6 +201,22 @@ class Routes {
 
     await Task.deleteTask(taskId);
   }
+
+  // TODO: implement get task deadline (sync with deadline concept)
+  @Router.get("/project/task/deadline")
+  async getTaskDeadline(session: SessionDoc, task: string) {
+    throw new NotAllowedError("NOT IMPLELMENTED");
+  }
+
+  // TODO: implement update task deadline
+  @Router.patch("/project/task/deadline")
+  async updateTaskDeadline(session: SessionDoc, task: string) {
+    throw new NotAllowedError("NOT IMPLELMENTED");
+  }
+
+  // TODO: add fn to get tasks with deadlines that are close?
+  // TODO: add fn to get tasks whose deadlines are before / after some date?
+  // just some ideas for functionality
 
   /**
    * get all tasks for a project
@@ -287,6 +303,15 @@ class Routes {
     // assignee set to null in tasking class?
     return await Task.updateAssignee(taskId);
   }
+
+  // TODO: add fn to set task to COMPLETE
+  // sync this with reward! if it is complete, then create new reward
+
+  // TODO: add fn to set task to INCOMPLETE
+  // should we consider taking away rewards if a task is reset to incomplete?
+  // the rewarding concept should be made in a way that it does not allow you to assign
+  // multiple rewards for the same task (so if you check then uncheck then check a task,
+  // it won't just keep rewarding you new rewards, it will just have you keep the first reward)
 
   @Router.get("/session")
   async getSessionUser(session: SessionDoc) {

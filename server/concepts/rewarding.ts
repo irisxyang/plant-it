@@ -4,7 +4,7 @@ import DocCollection, { BaseDoc } from "../framework/doc";
 export interface RewardDoc extends BaseDoc {
   name: string; // name of reward
   icon: string; // link/path to reward icon (randomly selected from a set of icon options)
-  user: ObjectId; // user it is associated with
+  user: string; // username it is associated with
   project: ObjectId; // project it is associated with
   task: ObjectId; // task it is associated with
 }

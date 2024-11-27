@@ -161,25 +161,24 @@ class Routes {
    * TODO: consider if we should limit task title length (ex: 100 characters)
    * TODO: sync with DEADLINING --> each task should have an associated deadline
    * TODO: decide if tasks must be assigned deadlines?
+   * assignee is required arg, set to '' if unassigned
    */
   @Router.post("/project/tasks")
-  async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee?: string) {
+  async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(project);
 
     await Project.assertUserIsCreator(projectId, user);
-    const task = await Task.createTask(title, notes, projectId, links);
-    let assigneeId;
+
+    // if assignee field not null, then check that user is actually member of project
     if (assignee) {
-      assigneeId = new ObjectId(assignee);
+      const assigneeObj = await Authing.getUserByUsername(assignee);
+      const assigneeId = assigneeObj._id;
       // assert that the user assigned is actually a member of the project
       await ProjectMember.assertItemInGroup(projectId, assigneeId);
-      if (!task.task) {
-        throw new NotAllowedError("Task not created--user is not a member of this project");
-      }
-      // TODO: double check this
-      await Task.updateAssignee(task.task._id, assigneeId);
     }
+
+    const task = await Task.createTask(title, notes, projectId, links, assignee);
 
     return task;
   }
@@ -239,9 +238,11 @@ class Routes {
   @Router.get("/user/tasks")
   async getTasksForUser(session: SessionDoc) {
     const user = Sessioning.getUser(session);
+    const userObject = await Authing.getUserById(user);
+    const username = userObject.username;
 
     // should return all tasks associated with user
-    return await Task.getTasksByAssignee(user);
+    return await Task.getTasksByAssignee(username);
   }
 
   /**
@@ -281,8 +282,7 @@ class Routes {
     await Project.assertUserIsCreator(projectId, user);
 
     // set user as new assignee
-    const assigneeId = new ObjectId(assignee);
-    return await Task.updateAssignee(taskId, assigneeId);
+    return await Task.updateAssignee(taskId, assignee);
   }
 
   /**
@@ -301,7 +301,7 @@ class Routes {
     await Project.assertUserIsCreator(projectId, user);
 
     // assignee set to null in tasking class?
-    return await Task.updateAssignee(taskId);
+    return await Task.updateAssignee(taskId, "");
   }
 
   // TODO: add fn to set task to COMPLETE

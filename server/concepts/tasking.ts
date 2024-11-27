@@ -7,7 +7,7 @@ export interface TaskDoc extends BaseDoc {
   title: string;
   notes: string;
   project: ObjectId;
-  assignee: ObjectId | null;
+  assignee: string; // username, "" if not assigned
   completion: boolean;
   links: string[];
 }
@@ -27,7 +27,7 @@ export default class TaskingConcept {
    * @param assignee Optional Param, ObjectId of the user the task is assigned to. Defaults to null for unassigned tasks
    * @returns Object with a success message (msg) and the task created (task)
    */
-  async createTask(title: string, notes: string, project: ObjectId, links: string[], assignee: ObjectId | null = null) {
+  async createTask(title: string, notes: string, project: ObjectId, links: string[], assignee: string) {
     const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links });
     return { msg: "Task successfully created!", task: await this.tasks.readOne({ _id }) };
   }
@@ -70,7 +70,7 @@ export default class TaskingConcept {
    * @returns
    * TODO: double check null param
    */
-  async updateAssignee(_id: ObjectId, assignee: ObjectId | null = null) {
+  async updateAssignee(_id: ObjectId, assignee: string) {
     await this.tasks.partialUpdateOne({ _id }, { assignee: assignee });
     return { msg: "Task assignee successfully updated!" };
   }
@@ -89,7 +89,7 @@ export default class TaskingConcept {
    * @param assignee ObjectId of asignee to search tasks by. Use null to search for unassigned tasks
    * @returns An array of TaskDocs assigned to the assignee, empty if none
    */
-  async getTasksByAssignee(assignee: ObjectId | null) {
+  async getTasksByAssignee(assignee: string) {
     const userTasks = await this.tasks.readMany({ assignee: assignee });
     // if (!userTasks) {
     //   throw new NotFoundError(`User ${assignee} does not have any tasks!`); //RESOLVED: Should this actually be an error or expected behavior?

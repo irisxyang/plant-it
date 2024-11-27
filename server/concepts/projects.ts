@@ -19,47 +19,96 @@ export default class ProjectConcept {
     this.projects = new DocCollection<ProjectDoc>(collectionName);
   }
 
-  // make new project with some name
-  // returns: created project
+  /**
+   * Create a new project
+   * @param creator ObjectId of creator of the project, also the admin
+   * @param name Name of the project
+   * @returns Object with message of success (msg) and the new project (project)
+   */
   async create(creator: ObjectId, name: string) {
     await this.assertProjectNameUnique(name);
     const _id = await this.projects.createOne({ creator, name });
     return { msg: "Project successfully created!", project: await this.projects.readOne({ _id }) };
   }
 
-  // get project by id
+  /**
+   * Gets a project given a project id
+   * @param _id The id of the project to find
+   * @returns The specified project
+   * @throws NotFoundError if project does not exist
+   */
   async getProject(_id: ObjectId) {
-    return await this.projects.readOne({ _id });
+    const result = await this.projects.readOne({ _id });
+    if (!result) {
+      throw new NotFoundError(`Project with id ${_id} not found`);
+    }
+    return result;
   }
 
-  // get project by name
-  async getProjectByName(name: string) {
-    return await this.projects.readMany({ name });
+  /**
+   * Get project by name and creator
+   * @param name Name of the project
+   * @param creator Creator of the project
+   * @returns The project
+   * @throws NotFoundError if no project  is found
+   */
+  async getProjectByName(name: string, creator: ObjectId) {
+    const result = await this.projects.readMany({ name, creator });
+    if (!result) {
+      throw new NotFoundError(`Project with name ${name} and creator ${creator} not found`);
+    }
+    return result;
   }
 
-  // update project name
-  async updateProjectName(_id: ObjectId, name: string) {
-    await this.assertProjectNameUnique(name);
-    await this.projects.partialUpdateOne({ _id }, { name });
+  /**
+   * Updates a projects name
+   * @param _id Id of the project to update
+   * @param newName The name to update to
+   * @returns Success message
+   */
+  async updateProjectName(_id: ObjectId, newName: string) {
+    await this.assertProjectNameUnique(newName);
+    await this.projects.partialUpdateOne({ _id }, { name: newName });
 
     return { msg: "Project name successfully updated!" };
   }
 
-  // update project
-  async updateProjectCreator(_id: ObjectId, creator: ObjectId) {
-    await this.projects.partialUpdateOne({ _id }, { creator });
-
+  /**
+   * Update the project creator/admin
+   * @param _id Id of the project to udpate
+   * @param newCreator New creator to update to
+   * @returns Success message
+   * @throws NotFoundError if no project with _id is found
+   */
+  async updateProjectCreator(_id: ObjectId, newCreator: ObjectId) {
+    const results = await this.projects.partialUpdateOne({ _id }, { creator: newCreator });
+    if (!results.matchedCount) {
+      throw new NotFoundError(`No project find with id ${_id}`);
+    }
     return { msg: "Project manager successfully updated!" };
   }
 
-  // delete project
+  /**
+   * Delete a project
+   * @param _id Id of the project to delete
+   * @returns Success message
+   * @throws NotFoundError if no project with that id is found
+   */
   async deleteProject(_id: ObjectId) {
-    await this.projects.deleteOne({ _id });
+    const result = await this.projects.deleteOne({ _id });
+    if (!result.deletedCount) {
+      throw new NotFoundError(`No project with id ${_id} found`);
+    }
     return { msg: "Project successfully deleted!" };
   }
 
-  // assert user is creator of a project
-  // _id: project id, user: user we want to check is creator
+  /**
+   * Asserts that a user is the creator of a certain project
+   * @param _id Id of the project to check
+   * @param user Id of the user to check
+   * @throws NotFoundError if project does not exist
+   * @throws UserCreatorNotMatchError if the user and creator do not match
+   */
   async assertUserIsCreator(_id: ObjectId, user: ObjectId) {
     const project = await this.projects.readOne({ _id });
     if (!project) {
@@ -70,6 +119,11 @@ export default class ProjectConcept {
     }
   }
 
+  /**
+   * Asserts that a project name is unique. Requires all names to be unique regardless of owner //TODO verify this is the behavior we want....
+   * @param name Name of the project to check
+   * @throws NotAllowedError if name is not unique
+   */
   private async assertProjectNameUnique(name: string) {
     if (await this.projects.readOne({ name })) {
       throw new NotAllowedError(`Project with name ${name} already exists! Please choose a different name.`);

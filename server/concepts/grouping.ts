@@ -3,8 +3,7 @@ import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotAllowedError, NotFoundError } from "./errors";
 
 export interface GroupItemDoc extends BaseDoc {
-  label: string;
-  author: ObjectId;
+  label: string | ObjectId;
   item: ObjectId;
 }
 
@@ -24,29 +23,27 @@ export default class GroupItemConcept {
    * Add an item to a group.
    *
    * @param label Label of the group you're adding an item to
-   * @param author: ObjectId of the author of the group you're adding to
    * @param item ObjectId of the item to add to the group
    * @returns Success message
    */
-  async addGroupItem(label: string, author: ObjectId, item: ObjectId) {
-    await this.groupitems.createOne({ label, author, item });
-    return { msg: "Added item rto group!" };
+  async addGroupItem(label: string | ObjectId, item: ObjectId) {
+    await this.groupitems.createOne({ label, item });
+    return { msg: "Added item to group!" };
   }
 
   /**
    * Remove an item from a group
    *
    * @param label Label of the group you're removing an item from
-   * @param author: ObjectId of the author of the group you're removing from
    * @param item ObjectId of the item you're adding to the group
    * @returns Success Message
    * @throws NotFoundError if not groups are found with that label and author
    *
    */
-  async removeGroupItem(label: string, author: ObjectId, item: ObjectId) {
-    const result = await this.groupitems.deleteOne({ label, author, item });
+  async removeGroupItem(label: string | ObjectId, item: ObjectId) {
+    const result = await this.groupitems.deleteOne({ label, item });
     if (!result.deletedCount) {
-      throw new NotFoundError(`Did not find any groups to delete with label: ${label} and author: ${author}`);
+      throw new NotFoundError(`Did not find any groups to delete with label: ${label}`);
     }
     return { msg: "Removed item from group!" };
   }
@@ -58,10 +55,10 @@ export default class GroupItemConcept {
    * @returns A list of the ObjectIds of the items contained in the specified group.
    * @throws NotFoundError If the group does not exist
    */
-  async getItemsInGroup(label: string, author: ObjectId) {
-    const objs = await this.groupitems.readMany({ label, author }, { projection: { item: 1 } });
+  async getItemsInGroup(label: string | ObjectId) {
+    const objs = await this.groupitems.readMany({ label }, { projection: { item: 1 } });
     if (!objs) {
-      throw new NotFoundError(`Group named ${label} by author ${author} does not exist`);
+      throw new NotFoundError(`Group named ${label} does not exist`);
     }
     const items = objs.map((obj) => obj.item);
     return items;
@@ -87,8 +84,8 @@ export default class GroupItemConcept {
    * @param author: ObjectId of the author of the group you're deleting
    * @returns Success message
    */
-  async deleteAllItemsInGroup(label: string, author: ObjectId) {
-    await this.groupitems.deleteMany({ label, author });
+  async deleteAllItemsInGroup(label: string | ObjectId) {
+    await this.groupitems.deleteMany({ label });
     return { msg: "Deleted all instances of group!" };
   }
 
@@ -108,36 +105,36 @@ export default class GroupItemConcept {
    * @param author: ObjectId of the author of the group checking to see if the item is in
    * @param item: The item you're checking if is in group
    */
-  async assertItemInGroup(label: string, author: ObjectId, item: ObjectId) {
-    const pair = await this.groupitems.readOne({ label, author, item });
+  async assertItemInGroup(label: string | ObjectId, item: ObjectId) {
+    const pair = await this.groupitems.readOne({ label, item });
     if (!pair) {
-      throw new NotFoundError(`Item ${item} not in group named ${label} by author ${author}!`);
+      throw new NotFoundError(`Item ${item} not in group named ${label}!`);
     }
-  }
-  /**
-   * Get all the groups that a user in the author of
-   * @param author ObjectId of the author to check
-   * @returns A list of the labels of all the groups a user is the author of
-   * @throws NotFoundError if user is not author of any groups
-   */
-  async getGroupsAuthorId(author: ObjectId) {
-    const groups = await this.groupitems.readMany({ author: author });
-    if (!groups) {
-      throw new NotFoundError(`Author ${author} has not authored any groups!`);
-    }
-    const labels = groups.map((group) => group.label);
-    return Array.from(new Set(labels)); //Need to only get unique labels
   }
 
+  // /**
+  //  * Get all the groups that a user in the author of
+  //  * @param author ObjectId of the author to check
+  //  * @returns A list of the labels of all the groups a user is the author of
+  //  * @throws NotFoundError if user is not author of any groups
+  //  */
+  // async getGroupsAuthorId(author: ObjectId) {
+  //   const groups = await this.groupitems.readMany({ author: author });
+  //   if (!groups) {
+  //     throw new NotFoundError(`Author ${author} has not authored any groups!`);
+  //   }
+  //   const labels = groups.map((group) => group.label);
+  //   return Array.from(new Set(labels)); //Need to only get unique labels
+  // }
+
   /**
-   * Checks that a group identified by its author and label does not already exist
-   * @param author ObjectId of the author of the group
+   * Checks that a group identified by its label does not already exist
    * @param label Label of the group
    * @throws NotAllowedError if there is already a group with that author and label
    */
-  async assertGroupUnique(author: ObjectId, label: string) {
-    if (await this.groupitems.readOne({ author: author, label: label })) {
-      throw new NotAllowedError(`Group with label ${label} and author ${author} already exists}`);
+  async assertGroupUnique(label: string | ObjectId) {
+    if (await this.groupitems.readOne({ label: label })) {
+      throw new NotAllowedError(`Group with label ${label} already exists}`);
     }
   }
 }

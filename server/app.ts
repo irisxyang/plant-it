@@ -18,7 +18,3 @@ export const ProjectMember = new GroupItemConcept("projectmembers");
 
 // task stores description, associated project, and completion
 export const Task = new TaskingConcept("tasks");
-// "Group" = Task, "Item" = assignee
-export const TaskAssignee = new GroupItemConcept("taskassignee");
-// TODO: linking functionality?
-// export const TaskLink = new GroupItemConcept("tasklink");

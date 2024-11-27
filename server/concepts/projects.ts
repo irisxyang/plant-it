@@ -32,6 +32,14 @@ export default class ProjectConcept {
     return await this.projects.readOne({ _id });
   }
 
+  async getProjectName(_id: ObjectId) {
+    const project = await this.projects.readOne({ _id });
+    if (!project) {
+      throw new NotAllowedError("Project does not exist!");
+    }
+    return project.name;
+  }
+
   // get project by name
   async getProjectByName(name: string) {
     return await this.projects.readMany({ name });

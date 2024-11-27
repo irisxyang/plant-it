@@ -1,15 +1,15 @@
 import { ObjectId } from "mongodb";
 
 import DocCollection, { BaseDoc } from "../framework/doc";
-import { NotFoundError } from "./errors";
+import { NotAllowedError, NotFoundError } from "./errors";
 
 export interface TaskDoc extends BaseDoc {
-  title: String;
-  notes: String;
+  title: string;
+  notes: string;
   project: ObjectId;
   assignee: ObjectId;
   completion: boolean;
-  links: String[]
+  links: string[];
 }
 
 export default class TaskingConcept {
@@ -28,8 +28,8 @@ export default class TaskingConcept {
    * @returns Object with a success message (msg) and the task created (task)
    */
   //TODO Decide between a default arg for asignee or making it optional and expecting syncs to input null value
-  async createTask(title: string, notes: String, project: ObjectId, links: String[], assignee: ObjectId = undefined) {
-    const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links});
+  async createTask(title: string, notes: string, project: ObjectId, links: string[], assignee: ObjectId = undefined) {
+    const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links });
     return { msg: "Task successfully created!", task: await this.tasks.readOne({ _id }) };
   }
 
@@ -49,7 +49,7 @@ export default class TaskingConcept {
    * @returns Success message
    */
   async deleteTasksForProject(project: ObjectId) {
-    await this.tasks.deleteMany({ project:project });
+    await this.tasks.deleteMany({ project: project });
     return { msg: "Tasks for project successfully deleted." };
   }
 
@@ -63,14 +63,15 @@ export default class TaskingConcept {
     await this.tasks.partialUpdateOne({ _id }, { notes: notes });
     return { msg: "Task description successfully updated!" };
   }
-  
+
   /**
    * Update the assignee for a task
    * @param _id _id of the task to update
    * @param assignee new assignee for task. Leave out to leave task unassigned
-   * @returns 
+   * @returns
    */
-  async updateAssignee(_id: ObjectId, assignee: ObjectId = undefined) { //TODO is that how TS default params work?
+  async updateAssignee(_id: ObjectId, assignee: ObjectId = undefined) {
+    //TODO is that how TS default params work?
     await this.tasks.partialUpdateOne({ _id }, { assignee: assignee });
     return { msg: "Task assignee successfully updated!" };
   }
@@ -90,10 +91,10 @@ export default class TaskingConcept {
    * @returns An array of TaskDocs assigned to the assignee
    * @throws NotFoundError if user is not assigned any tasks
    */
-  async getTasksByAssignee(assignee: ObjectId){
-    const userTasks = await this.tasks.readMany({assignee: assignee});
-    if (!userTasks){
-      throw new NotFoundError(`User ${assignee} does not have any tasks!`) //TODO: Should this actually be an error or expected behavior?
+  async getTasksByAssignee(assignee: ObjectId) {
+    const userTasks = await this.tasks.readMany({ assignee: assignee });
+    if (!userTasks) {
+      throw new NotFoundError(`User ${assignee} does not have any tasks!`); //TODO: Should this actually be an error or expected behavior?
     }
     return userTasks;
   }
@@ -111,7 +112,8 @@ export default class TaskingConcept {
    * @param completion new status of task
    * @returns Message stating what change was made
    */
-  async updateCompletionStatus(_id: ObjectId, completion: boolean) { //TODO should we have checking to see if the task even exists?
+  async updateCompletionStatus(_id: ObjectId, completion: boolean) {
+    //TODO should we have checking to see if the task even exists?
     await this.tasks.partialUpdateOne({ _id }, { completion });
     if (completion) {
       return { msg: "Task marked as completed!" };
@@ -123,11 +125,21 @@ export default class TaskingConcept {
    * Gets a list of all tasks that are part of a certain project
    * @param project ObjectId of the project to search for
    * @returns An Array of all the tasks belonging to a given project
-   * 
+   *
    */
   async getTasksByProject(project: ObjectId) {
     return await this.tasks.readMany({ project });
   }
-
-
+  /**
+   *
+   * @param task task id for which you want to get assignee for
+   * @returns assignee of that task
+   */
+  async getAssignee(task: ObjectId) {
+    const fetchedTask = await this.tasks.readOne({ task });
+    if (!fetchedTask) {
+      throw new NotAllowedError("Task does not exist!");
+    }
+    return fetchedTask.assignee;
+  }
 }

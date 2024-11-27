@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Project, ProjectMember, Sessioning, Task, TaskAssignee } from "./app";
+import { Authing, Friending, Posting, Project, ProjectMember, Sessioning, Task } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -46,19 +46,6 @@ class Routes {
     await Project.assertUserIsCreator(projectId, user);
     await ProjectMember.deleteAllItemsInGroup(projectId);
 
-    // delete all task-assignee linkages associated with tasks
-    // get tasks for project
-    const projectTasks = await Task.getAllTasksForProject(projectId);
-    if (projectTasks) {
-      // if there are tasks, then we iterate through task-assignee linakges for those tasks
-      for (let i = 0; i < projectTasks.length; i++) {
-        const task = projectTasks[i];
-        const taskId = task._id;
-        // remove all assignee linkages to that task (i.e. delete the task)
-        await TaskAssignee.deleteAllItemsInGroup(taskId);
-      }
-    }
-
     // delete all tasks associated with the project
     await Task.deleteTasksForProject(projectId);
     return await Project.deleteProject(projectId);
@@ -66,6 +53,7 @@ class Routes {
 
   /**
    * get project given either a name or ID
+   * TODO: get project by name... not necessary if names not unique across users?
    */
   @Router.get("/projects")
   async getProject(session: SessionDoc, name?: string, id?: string) {
@@ -77,7 +65,7 @@ class Routes {
       await ProjectMember.assertItemInGroup(projectId, user);
       project = await Project.getProject(projectId);
     } else if (name) {
-      project = await Project.getProjectByName(name);
+      project = await Project.getProjectByName(name, user);
     } else {
       throw new NotAllowedError("Did not specify project to fetch!");
     }
@@ -151,9 +139,6 @@ class Routes {
 
     await Project.assertUserIsCreator(projectId, user);
 
-    // remove member as an assignee from all tasks it is a part of
-    await TaskAssignee.deleteItemFromAllGroups(memberToDelete);
-
     return await ProjectMember.removeGroupItem(projectId, memberToDelete);
   }
 
@@ -178,21 +163,22 @@ class Routes {
    * box for more detail
    */
   @Router.post("/project/tasks")
-  async createTask(session: SessionDoc, project: string, description: string, assignee?: string) {
+  async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee?: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(project);
 
     await Project.assertUserIsCreator(projectId, user);
-    const task = await Task.create(description, projectId);
+    const task = await Task.createTask(title, notes, projectId, links);
     let assigneeId;
     if (assignee) {
       assigneeId = new ObjectId(assignee);
       // assert that the user assigned is actually a member of the project
       await ProjectMember.assertItemInGroup(projectId, assigneeId);
       if (!task.task) {
-        throw new NotAllowedError("Task not successfully created!");
+        throw new NotAllowedError("Task not created--user is not a member of this project");
       }
-      await TaskAssignee.addGroupItem(task.task._id, assigneeId);
+      // TODO: double check this
+      await Task.updateAssignee(task.task._id, assigneeId);
     }
 
     return task;
@@ -207,16 +193,13 @@ class Routes {
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
 
-    const projectId = (await Task.getTask(taskId))?.project;
+    const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
     }
     await Project.assertUserIsCreator(projectId, user);
 
-    // remove all instances of task-assignee links
-    await TaskAssignee.deleteAllItemsInGroup(taskId);
-
-    await Task.delete(taskId);
+    await Task.deleteTask(taskId);
   }
 
   /**
@@ -230,7 +213,7 @@ class Routes {
 
     await ProjectMember.assertItemInGroup(projectId, user);
 
-    return await Task.getAllTasksForProject(projectId);
+    return await Task.getTasksByProject(projectId);
   }
 
   /**
@@ -242,25 +225,25 @@ class Routes {
     const user = Sessioning.getUser(session);
 
     // should return all tasks associated with user
-    return await TaskAssignee.getGroupsForItem(user);
+    return await Task.getTasksByAssignee(user);
   }
 
   /**
-   * update task description
-   * only project manager can update details for a project's tasks
+   * update task notes
+   * any member of project can update project's task notes
    */
   @Router.patch("/project/task/description")
-  async updateTaskDescription(session: SessionDoc, task: string, description: string) {
+  async updateTaskDescription(session: SessionDoc, task: string, notes: string) {
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
 
-    const projectId = (await Task.getTask(taskId))?.project;
+    const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
     }
-    await Project.assertUserIsCreator(projectId, user);
+    await ProjectMember.assertItemInGroup(projectId, user);
 
-    await Task.updateDescription(taskId, description);
+    await Task.updateNotes(taskId, notes);
   }
 
   /**
@@ -268,8 +251,6 @@ class Routes {
    * only manager of the project for that task can do this
    * this should be called if a user is being added to a task
    *
-   * IMPORTANT: call unassignTask() first before adding task assignees
-   * in order to fully reassign task, else will just keep adding assignees
    */
   @Router.post("/project/task/assignees")
   async addTaskAssignee(session: SessionDoc, task: string, assignee: string) {
@@ -277,7 +258,7 @@ class Routes {
     const taskId = new ObjectId(task);
 
     // get project id of the task to check if user is creator of project
-    const projectId = (await Task.getTask(taskId))?.project;
+    const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
     }
@@ -285,7 +266,7 @@ class Routes {
 
     // set user as new assignee
     const assigneeId = new ObjectId(assignee);
-    return await TaskAssignee.addGroupItem(taskId, assigneeId);
+    return await Task.updateAssignee(taskId, assigneeId);
   }
 
   /**
@@ -297,33 +278,14 @@ class Routes {
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
 
-    const projectId = (await Task.getTask(taskId))?.project;
+    const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
     }
     await Project.assertUserIsCreator(projectId, user);
 
-    // deletes all task-assignee linkages for that task
-    return await TaskAssignee.deleteAllItemsInGroup(taskId);
-  }
-
-  /**
-   * get assignees for a task
-   * only members of a project can do this
-   */
-  @Router.get("/project/task/assignees")
-  async getAssigneesForTask(session: SessionDoc, task: string) {
-    const user = Sessioning.getUser(session);
-    const taskId = new ObjectId(task);
-
-    const projectId = (await Task.getTask(taskId))?.project;
-    if (!projectId) {
-      throw new NotAllowedError("Task does not exist!");
-    }
-    await ProjectMember.assertItemInGroup(projectId, user);
-
-    // gets all task-assignee linkages for that task
-    return await TaskAssignee.getItemsInGroup(taskId);
+    // assignee set to null in tasking class?
+    return await Task.updateAssignee(taskId);
   }
 
   @Router.get("/session")

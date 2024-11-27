@@ -26,7 +26,7 @@ export default class ProjectConcept {
    * @returns Object with message of success (msg) and the new project (project)
    */
   async create(creator: ObjectId, name: string) {
-    await this.assertProjectNameUnique(name);
+    await this.assertProjectNameUnique(creator, name);
     const _id = await this.projects.createOne({ creator, name });
     return { msg: "Project successfully created!", project: await this.projects.readOne({ _id }) };
   }
@@ -51,6 +51,7 @@ export default class ProjectConcept {
    * @param creator Creator of the project
    * @returns The project
    * @throws NotFoundError if no project  is found
+   * TODO: is this necessary if we don't have unique names across users?
    */
   async getProjectByName(name: string, creator: ObjectId) {
     const result = await this.projects.readMany({ name, creator });
@@ -67,7 +68,12 @@ export default class ProjectConcept {
    * @returns Success message
    */
   async updateProjectName(_id: ObjectId, newName: string) {
-    await this.assertProjectNameUnique(newName);
+    const project = await this.projects.readOne({ _id });
+    if (!project) {
+      throw new NotAllowedError("Project does not exist!");
+    }
+    const creator = project.creator;
+    await this.assertProjectNameUnique(creator, newName);
     await this.projects.partialUpdateOne({ _id }, { name: newName });
 
     return { msg: "Project name successfully updated!" };
@@ -124,9 +130,9 @@ export default class ProjectConcept {
    * @param name Name of the project to check
    * @throws NotAllowedError if name is not unique
    */
-  private async assertProjectNameUnique(name: string) {
-    if (await this.projects.readOne({ name })) {
-      throw new NotAllowedError(`Project with name ${name} already exists! Please choose a different name.`);
+  private async assertProjectNameUnique(creator: ObjectId, name: string) {
+    if (await this.projects.readOne({ creator, name })) {
+      throw new NotAllowedError(`Project by ${creator} with name ${name} already exists! Please choose a different name.`);
     }
   }
 }

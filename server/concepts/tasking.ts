@@ -4,12 +4,12 @@ import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotFoundError } from "./errors";
 
 export interface TaskDoc extends BaseDoc {
-  title: String;
-  notes: String;
+  title: string;
+  notes: string;
   project: ObjectId;
-  assignee: ObjectId;
+  assignee: ObjectId | null;
   completion: boolean;
-  links: String[]
+  links: string[];
 }
 
 export default class TaskingConcept {
@@ -20,16 +20,15 @@ export default class TaskingConcept {
   }
 
   /**
-   * Create a new task
+   * Create a new task that has not been completed
    * @param title Title of the task
    * @param notes Notes about the task
    * @param project ObjectId of the project that the task belongs to
-   * @param assignee ObjectId of the user the task is assigned to. Defaults to undefined for unassigned tasks
+   * @param assignee Optional Param, ObjectId of the user the task is assigned to. Defaults to null for unassigned tasks
    * @returns Object with a success message (msg) and the task created (task)
    */
-  //TODO Decide between a default arg for asignee or making it optional and expecting syncs to input null value
-  async createTask(title: string, notes: String, project: ObjectId, links: String[], assignee: ObjectId = undefined) {
-    const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links});
+  async createTask(title: string, notes: string, project: ObjectId, links: string[], assignee: ObjectId | null = null) {
+    const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links });
     return { msg: "Task successfully created!", task: await this.tasks.readOne({ _id }) };
   }
 
@@ -49,7 +48,7 @@ export default class TaskingConcept {
    * @returns Success message
    */
   async deleteTasksForProject(project: ObjectId) {
-    await this.tasks.deleteMany({ project:project });
+    await this.tasks.deleteMany({ project: project });
     return { msg: "Tasks for project successfully deleted." };
   }
 
@@ -63,14 +62,14 @@ export default class TaskingConcept {
     await this.tasks.partialUpdateOne({ _id }, { notes: notes });
     return { msg: "Task description successfully updated!" };
   }
-  
+
   /**
    * Update the assignee for a task
    * @param _id _id of the task to update
-   * @param assignee new assignee for task. Leave out to leave task unassigned
-   * @returns 
+   * @param assignee Optional param. New assignee for task. Defaults to null for unassigned tasks
+   * @returns
    */
-  async updateAssignee(_id: ObjectId, assignee: ObjectId = undefined) { //TODO is that how TS default params work?
+  async updateAssignee(_id: ObjectId, assignee: ObjectId | null = null) {
     await this.tasks.partialUpdateOne({ _id }, { assignee: assignee });
     return { msg: "Task assignee successfully updated!" };
   }
@@ -86,33 +85,29 @@ export default class TaskingConcept {
 
   /**
    * Get all of the tasks assigned to a certain user
-   * @param assignee Asignee to search tasks by
-   * @returns An array of TaskDocs assigned to the assignee
-   * @throws NotFoundError if user is not assigned any tasks
+   * @param assignee ObjectId of asignee to search tasks by. Use null to search for unassigned tasks
+   * @returns An array of TaskDocs assigned to the assignee, empty if none
    */
-  async getTasksByAssignee(assignee: ObjectId){
-    const userTasks = await this.tasks.readMany({assignee: assignee});
-    if (!userTasks){
-      throw new NotFoundError(`User ${assignee} does not have any tasks!`) //TODO: Should this actually be an error or expected behavior?
-    }
+  async getTasksByAssignee(assignee: ObjectId | null) {
+    const userTasks = await this.tasks.readMany({ assignee: assignee });
+    // if (!userTasks) {
+    //   throw new NotFoundError(`User ${assignee} does not have any tasks!`); //RESOLVED: Should this actually be an error or expected behavior?
+    // }
     return userTasks;
   }
-
-  //   // TODO: how to set a doc field to be undefined?.ben: I think this can be taken care of in same function as reassignment
-  //   async unassignTask(_id: ObjectId) {
-  //     const assignee = undefined;
-  //     await this.tasks.partialUpdateOne({ _id }, { assignee });
-  //     return { msg: "TODO: partial update to null or undefined?" };
-  //   }
 
   /**
    * Updates the completion status of a task
    * @param _id _id of the task to update
    * @param completion new status of task
    * @returns Message stating what change was made
+   * @throws NotFoundError If
    */
-  async updateCompletionStatus(_id: ObjectId, completion: boolean) { //TODO should we have checking to see if the task even exists?
-    await this.tasks.partialUpdateOne({ _id }, { completion });
+  async updateCompletionStatus(_id: ObjectId, completion: boolean) {
+    const result = await this.tasks.partialUpdateOne({ _id }, { completion });
+    if (!result.matchedCount) {
+      throw new NotFoundError(`Task: ${_id} not found to update completion status`);
+    }
     if (completion) {
       return { msg: "Task marked as completed!" };
     }
@@ -123,11 +118,9 @@ export default class TaskingConcept {
    * Gets a list of all tasks that are part of a certain project
    * @param project ObjectId of the project to search for
    * @returns An Array of all the tasks belonging to a given project
-   * 
+   *
    */
   async getTasksByProject(project: ObjectId) {
     return await this.tasks.readMany({ project });
   }
-
-
 }

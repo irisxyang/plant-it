@@ -78,7 +78,9 @@ class Routes {
   @Router.get("/user/projects")
   async getUserProjects(session: SessionDoc) {
     const user = Sessioning.getUser(session);
-    return await ProjectMember.getGroupsForItem(user);
+    const projectIds = await ProjectMember.getGroupsForItem(user);
+
+    return await Project.getProjectsByIds(projectIds);
   }
 
   /**
@@ -317,6 +319,13 @@ class Routes {
   async getSessionUser(session: SessionDoc) {
     const user = Sessioning.getUser(session);
     return await Authing.getUserById(user);
+  }
+
+  @Router.get("/users/username/:id")
+  async getUsernameById(id: string) {
+    const userId = new ObjectId(id);
+    const userObject = await Authing.getUserById(userId);
+    return userObject.username;
   }
 
   @Router.get("/users")

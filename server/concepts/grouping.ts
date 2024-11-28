@@ -62,7 +62,7 @@ export default class GroupItemConcept {
   /**
    *
    * @param item ObjectId of the item you want to search groups for
-   * @returns A list of itemDocs containing the items
+   * @returns A list of groupIds
    * @throws NotFoundError if item is not contained in any groups
    */
   async getGroupsForItem(item: ObjectId) {
@@ -70,7 +70,12 @@ export default class GroupItemConcept {
     if (!itemDocs) {
       throw new NotFoundError(`item ${item} is not in any groups`);
     }
-    return itemDocs;
+    const groups: Array<ObjectId> = [];
+    for (let i = 0; i < itemDocs.length; i++) {
+      const groupId = itemDocs[i].group;
+      groups.push(groupId);
+    }
+    return groups;
   }
 
   /**

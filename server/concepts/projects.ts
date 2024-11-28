@@ -62,6 +62,16 @@ export default class ProjectConcept {
   }
 
   /**
+   * given list of project object ids, returns the projects
+   * @param ids list of project object ids
+   * @returns
+   */
+  async getProjectsByIds(ids: ObjectId[]) {
+    const projects = await this.projects.readMany({ _id: { $in: ids } });
+    return projects;
+  }
+
+  /**
    * Updates a projects name
    * @param _id Id of the project to update
    * @param newName The name to update to

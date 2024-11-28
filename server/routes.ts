@@ -308,12 +308,63 @@ class Routes {
 
   // TODO: add fn to set task to COMPLETE
   // sync this with reward! if it is complete, then create new reward
+  /**
+   * Marks a task as completed
+   * @param session The session of the user
+   * @param id The id of the task to complete
+   */
+  @Router.post("/project/task/:id/complete")
+  async markTaskAsComplete(session: SessionDoc, id: string) {}
 
   // TODO: add fn to set task to INCOMPLETE
   // should we consider taking away rewards if a task is reset to incomplete?
   // the rewarding concept should be made in a way that it does not allow you to assign
   // multiple rewards for the same task (so if you check then uncheck then check a task,
   // it won't just keep rewarding you new rewards, it will just have you keep the first reward)
+  /**
+   * Marks a task as incomplete
+   * @param session The session of the user
+   * @param id The id of the task to mark as incomplete
+   */
+  @Router.post("/project/task/:id/incomplete")
+  async markTaskAsIncomplete(session: SessionDoc, id: string) {}
+
+  /**
+   * Checks if a task can be started
+   * @param session The session of the user
+   * @param id The id of the task to check
+   * @returns true if the task can be started, false otherwise
+   */
+  @Router.get("/project/task/:id/start")
+  async canStartTask(session: SessionDoc, id: string) {}
+
+  /**
+   * Get all notifications for the current user
+   * @param session The session of the user
+   * @returns An array of Notification objects
+   */
+  @Router.get("/notifications")
+  async getNotifications(session: SessionDoc) {}
+
+  /**
+   * Create a notification for the user that is assigned to a task
+   * @param session The session of the user
+   * @param id The id of the task to create a notification for
+   * @param message The message to include in the notification
+   */
+  @Router.post("/project/task/:id/notify")
+  @Router.validate(z.object({ message: z.string().min(1) }))
+  async createTaskNotification(session: SessionDoc, id: string, message: string) {}
+
+  /**
+   * Create a notification for all team members of a project
+   * @param session The session of the user
+   * @param id The id of the project to create a notification for
+   * @param message The message to include in the notification
+   */
+  @Router.post("/project/:id/notifyTeam")
+  @Router.validate(z.object({ message: z.string().min(1) }))
+  async createTeamNotification(session: SessionDoc, id: string, message: string) {}
 
   @Router.get("/session")
   async getSessionUser(session: SessionDoc) {

@@ -24,7 +24,7 @@ onBeforeMount(async () => {
   <section class="project-list" v-if="loaded && projects.length !== 0">
     My Projects:
     <article v-for="project in projects" :key="project._id">
-      <ProjectComponent :project="project" />
+      <ProjectComponent @refreshProjects="getProjects" :project="project" />
     </article>
   </section>
   <p v-else-if="loaded">No Projects.</p>

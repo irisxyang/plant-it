@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
+import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 
 // const { updateCurrentlyViewingProject } = useProjectStore();
@@ -8,8 +10,11 @@ import { onBeforeMount, ref } from "vue";
 //     await updateCurrentlyViewingProject(project);
 // }
 
+const emit = defineEmits(["refreshProjects"]);
+
 const loaded = ref(false);
 const props = defineProps(["project"]);
+const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
 const projectName = ref(props.project.name);
 const projectCreator = ref("");
 
@@ -22,6 +27,15 @@ const getProjectCreator = async (creatorId: string) => {
     return "Project Creator Not Found";
   }
   projectCreator.value = creator;
+};
+
+const deleteProject = async () => {
+  try {
+    await fetchy(`/api/projects/${props.project._id}`, "DELETE");
+  } catch {
+    return;
+  }
+  emit("refreshProjects");
 };
 
 // const getProjectMembers = async () => {
@@ -39,6 +53,9 @@ onBeforeMount(async () => {
     <p class="project-name">{{ projectName }}</p>
     <p class="project-creator">Creator: {{ projectCreator }}</p>
     <p class="project-creator">Project Id: {{ props.project._id }}</p>
+    <div class="project-buttons" v-if="projectCreator == currentUsername">
+      <button class="main-button" @click="deleteProject">Delete Project</button>
+    </div>
   </div>
 </template>
 

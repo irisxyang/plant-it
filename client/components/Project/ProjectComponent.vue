@@ -18,6 +18,8 @@ const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
 const projectName = ref(props.project.name);
 const projectCreator = ref("");
 
+const projectMembers = ref<Array<Record<string, string>>>([]);
+
 const getProjectCreator = async (creatorId: string) => {
   //   let query: Record<string, string> = { id: creatorId };
   let creator;
@@ -38,12 +40,21 @@ const deleteProject = async () => {
   emit("refreshProjects");
 };
 
-// const getProjectMembers = async () => {
-//     // get project members here
-// }
+const getProjectMembers = async () => {
+  // get project members here
+  const query: Record<string, string> = { id: props.project._id };
+  let members;
+  try {
+    members = await fetchy("/api/project/members", "GET", { query });
+  } catch {
+    return;
+  }
+  projectMembers.value = members;
+};
 
 onBeforeMount(async () => {
   await getProjectCreator(props.project.creator);
+  await getProjectMembers();
   loaded.value = true;
 });
 </script>
@@ -53,6 +64,7 @@ onBeforeMount(async () => {
     <p class="project-name">{{ projectName }}</p>
     <p class="project-creator">Creator: {{ projectCreator }}</p>
     <p class="project-creator">Project Id: {{ props.project._id }}</p>
+    <p>Members: {{ projectMembers }}</p>
     <div class="project-buttons" v-if="projectCreator == currentUsername">
       <button class="main-button" @click="deleteProject">Delete Project</button>
     </div>

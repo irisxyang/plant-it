@@ -153,8 +153,8 @@ class Routes {
     const projectId = new ObjectId(id);
 
     await ProjectMember.assertItemInGroup(projectId, user);
-
-    return await ProjectMember.getItemsInGroup(projectId);
+    const memberIds = await ProjectMember.getItemsInGroup(projectId);
+    return await Authing.idsToUsernames(memberIds);
   }
 
   /**

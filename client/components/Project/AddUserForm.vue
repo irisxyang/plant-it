@@ -8,6 +8,7 @@ const member = ref("");
 const addMember = async (id: string, member: string) => {
   // convert member username to id
   let memberId;
+  // get member id from username
   try {
     const memberObject = await fetchy(`/api/users/${member}`, "GET");
     if (!memberObject) {
@@ -19,7 +20,7 @@ const addMember = async (id: string, member: string) => {
   }
   try {
     await fetchy("/api/project/members", "POST", {
-      body: { id, memberId },
+      body: { id, member: memberId },
     });
   } catch (_) {
     return;
@@ -32,7 +33,7 @@ const addMember = async (id: string, member: string) => {
     <label for="content">Add members to a project (temp frontend placeholder)</label>
     only owner can add members to a project
     <input id="Project Id:" v-model="project" type="text" placeholder="Add project id (temp frontend placeholder)" required />
-    <input id="Member Username:" v-model="project" type="text" placeholder="Member Username" required />
+    <input id="Member Username:" v-model="member" type="text" placeholder="Member Username" required />
     <button type="submit" class="pure-button-primary pure-button">Add Member</button>
   </form>
 </template>

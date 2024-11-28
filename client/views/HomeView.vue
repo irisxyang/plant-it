@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AddUserForm from "@/components/Project/AddUserForm.vue";
 import CreateProjectForm from "@/components/Project/CreateProjectForm.vue";
 import ProjectListComponent from "@/components/Project/ProjectListComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
@@ -18,6 +19,7 @@ const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
     </section>
     <div v-if="isLoggedIn">
       <CreateProjectForm />
+      <AddUserForm />
       <ProjectListComponent />
       <CreateTaskForm />
       <TaskListComponent userHome="true" />

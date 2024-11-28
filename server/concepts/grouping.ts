@@ -54,8 +54,12 @@ export default class GroupItemConcept {
    */
   // get all items in a group
   async getItemsInGroup(group: ObjectId) {
-    const items = await this.groupitems.readMany({ group }, { projection: { item: 1 } });
-
+    const itemDocs = await this.groupitems.readMany({ group }, { projection: { item: 1 } });
+    const items: Array<ObjectId> = [];
+    for (let i = 0; i < itemDocs.length; i++) {
+      const itemId = itemDocs[i].item;
+      items.push(itemId);
+    }
     return items;
   }
 

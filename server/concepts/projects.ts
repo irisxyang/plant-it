@@ -28,7 +28,11 @@ export default class ProjectConcept {
   async create(creator: ObjectId, name: string) {
     await this.assertProjectNameUnique(creator, name);
     const _id = await this.projects.createOne({ creator, name });
-    return { msg: "Project successfully created!", project: await this.projects.readOne({ _id }) };
+    const project = await this.projects.readOne({ _id });
+    if (!project) {
+      throw new Error("Project creation failed!");
+    }
+    return { msg: "Project successfully created!", project };
   }
 
   /**

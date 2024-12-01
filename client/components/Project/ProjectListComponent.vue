@@ -10,8 +10,12 @@ let projects = ref<Array<Record<string, string>>>([]);
 const { currentUsername } = storeToRefs(useUserStore());
 
 async function getProjects() {
-  const fetchedProjects = await fetchy("api/user/projects", "GET");
-  projects.value = fetchedProjects;
+  try {
+    const fetchedProjects = await fetchy("api/user/projects", "GET");
+    projects.value = fetchedProjects;
+  } catch (_) {
+    return;
+  }
 }
 
 onBeforeMount(async () => {

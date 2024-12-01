@@ -1,6 +1,7 @@
-import { Authing } from "./app";
+import { Authing, Project } from "./app";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
+import { TaskDoc } from "./concepts/tasking";
 import { Router } from "./framework/router";
 
 /**
@@ -36,6 +37,14 @@ export default class Responses {
     const to = requests.map((request) => request.to);
     const usernames = await Authing.idsToUsernames(from.concat(to));
     return requests.map((request, i) => ({ ...request, from: usernames[i], to: usernames[i + requests.length] }));
+  }
+
+  /**
+   * Convert TaskDocs into a more readable format by including the project name.
+   */
+  static async tasks(task: TaskDoc[]) {
+    const projects = await Promise.all(task.map((t) => Project.getProjectById(t.project)));
+    return task.map((t, i) => ({ ...t, projectName: projects[i].name }));
   }
 }
 

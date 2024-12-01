@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import Responses from "./responses";
 
 import { Router, getExpressRouter } from "./framework/router";
 
@@ -23,13 +24,11 @@ class Routes {
   async createProject(session: SessionDoc, name: string) {
     const user = Sessioning.getUser(session);
     // get the project
-    const project = (await Project.create(user, name)).project;
+    const projectCreation = await Project.create(user, name);
+    const project = projectCreation.project;
     // add creator as a member for that project
-    if (project) {
-      await ProjectMember.addGroupItem(project._id, user);
-    }
-
-    return { msg: "Successfully created project!", project: project };
+    await ProjectMember.addGroupItem(project._id, user);
+    return { msg: projectCreation.msg, project };
   }
 
   /**
@@ -242,7 +241,8 @@ class Routes {
     const username = userObject.username;
 
     // should return all tasks associated with user
-    return await Task.getTasksByAssignee(username);
+    const tasks = await Task.getTasksByAssignee(username);
+    return await Responses.tasks(tasks);
   }
 
   /**

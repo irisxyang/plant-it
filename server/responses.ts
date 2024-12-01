@@ -1,4 +1,4 @@
-import { Authing, Project } from "./app";
+import { Authing, Deadlining, Project } from "./app";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { TaskDoc } from "./concepts/tasking";
@@ -40,11 +40,13 @@ export default class Responses {
   }
 
   /**
-   * Convert TaskDocs into a more readable format by including the project name.
+   * Convert TaskDocs into a more readable format by including the deadline and project name.
    */
   static async tasks(task: TaskDoc[]) {
     const projects = await Promise.all(task.map((t) => Project.getProjectById(t.project)));
-    return task.map((t, i) => ({ ...t, projectName: projects[i].name }));
+    const deadlines = await Promise.all(task.map((t) => Deadlining.getItemDeadline(t._id)));
+    const deadlineStrings = deadlines.map((d) => (d ? d.toLocaleString("default", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }) : null));
+    return task.map((t, i) => ({ ...t, projectName: projects[i].name, deadline: deadlineStrings[i] }));
   }
 }
 

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
-import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 
 const loaded = ref(false);
@@ -9,7 +7,6 @@ const loaded = ref(false);
 // (i.e. only fetch user tasks)
 // else we fetch the project's tasks
 const props = defineProps(["userHome", "projectPage"]);
-const { currentUsername } = storeToRefs(useUserStore());
 const tasks = ref<Array<Record<string, any>>>([]);
 const lengthtasks = ref(0);
 
@@ -57,16 +54,13 @@ onBeforeMount(async () => {
           <td style="text-align: center">
             <span v-if="task.completion">☑</span>
           </td>
-          <td>{{ new Date(task.dueDate).toLocaleString() }}</td>
+          <td>{{ task.deadline }}</td>
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
           <td>{{ task.projectName }}</td>
         </tr>
       </tbody>
     </table>
-    <!-- <article v-for="task in tasks" :key="task._id">
-      <TaskComponent :task="task" />
-    </article> -->
   </section>
   <p v-else-if="loaded">No Tasks.</p>
   <p v-else>Loading...</p>
@@ -78,15 +72,5 @@ onBeforeMount(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-table {
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: 1px solid black;
-  padding: 6px;
 }
 </style>

@@ -1,4 +1,5 @@
 import AuthenticatingConcept from "./concepts/authenticating";
+import DeadliningConcept from "./concepts/deadlining";
 import DependingConcept from "./concepts/depending";
 import FriendingConcept from "./concepts/friending";
 import GroupItemConcept from "./concepts/grouping";
@@ -16,6 +17,7 @@ export const Posting = new PostingConcept("posts");
 export const Friending = new FriendingConcept("friends");
 export const Depending = new DependingConcept("dependencies");
 export const Notifying = new NotifyingConcept("notifications");
+export const Deadlining = new DeadliningConcept("deadlines");
 
 export const Project = new ProjectConcept("projects");
 export const ProjectMember = new GroupItemConcept("projectmembers");

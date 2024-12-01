@@ -25,8 +25,8 @@ export default class DeadliningConcept {
    * @returns A success message and the DeadlineDoc created
    * @throws NotAllowedError if time is in the past
    */
-  async createDeadline(time: Date, item: ObjectId) {
-    if (Date.now() < time.getTime()) {
+  async createDeadline(item: ObjectId, time: Date) {
+    if (time.getTime() < Date.now()) {
       throw new NotAllowedError(`Can't set a deadline in the past!`);
     }
     const _id = await this.deadlines.createOne({ time, item });
@@ -34,48 +34,58 @@ export default class DeadliningConcept {
   }
 
   /**
+   * Get the deadline for a given item
+   * @param item ObjectId of the item to look up
+   * @returns The deadline for the item, or null if no deadline exists
+   */
+  async getItemDeadline(item: ObjectId) {
+    const result = await this.deadlines.readOne({ item });
+    return result?.time;
+  }
+
+  /**
    * Checks if a deadline has passed
-   * @param deadline id of the deadline to check
+   * @param item ObjectId of the item to check
    * @returns true if the deadline has passed. False otherwise
    * @throws NotFoundError if the deadline does not exist
    */
-  async hasPassed(deadline: ObjectId) {
-    const result = await this.deadlines.readOne({ deadline });
+  async hasPassed(item: ObjectId) {
+    const result = await this.deadlines.readOne({ item });
     if (!result) {
-      throw new NotFoundError(`Deadline ${deadline} does not exist`);
+      throw new NotFoundError(`Deadline ${item} does not exist`);
     }
     return result.time.getTime() < Date.now();
   }
 
   /**
    *
-   * @param deadline ObjectId of the deadine to checl
+   * @param item ObjectId of the item to check
    * @returns How much time is left until the deadline in millseconds
    * @throws NotFoundError if the deadline does not exist
    */
-  async getTimeLeft(deadline: ObjectId) {
-    const result = await this.deadlines.readOne({ deadline });
+  async getTimeLeft(item: ObjectId) {
+    const result = await this.deadlines.readOne({ item });
     if (!result) {
-      throw new NotFoundError(`Deadline ${deadline} does not exist`);
+      throw new NotFoundError(`Deadline ${item} does not exist`);
     }
     return Date.now() - result.time.getTime();
   }
 
   /**
    * Updates the time on a deadline
-   * @param deadline ObjectId of the deadline to update
+   * @param item ObjectId of the item to update
    * @param newTime Updated time for the deadline
    * @returns Success message
    * @Throws NotFoundError if the deadline does not exist
    * @Throws NotAllowedError if the newTime has already passed
    */
-  async updateDeadline(deadline: ObjectId, newTime: Date) {
+  async updateDeadline(item: ObjectId, newTime: Date) {
     if (Date.now() < newTime.getTime()) {
       throw new NotAllowedError(`Can't set a deadline in the past!`);
     }
-    const result = await this.deadlines.partialUpdateOne({ _id: deadline }, { time: newTime });
+    const result = await this.deadlines.partialUpdateOne({ _id: item }, { time: newTime });
     if (!result.matchedCount) {
-      throw new NotFoundError(`Deadline: ${deadline} did not match any deadlines in the database`);
+      throw new NotFoundError(`Deadline: ${item} did not match any deadlines in the database`);
     }
     return { msg: `Succesfully updated deadline` };
   }

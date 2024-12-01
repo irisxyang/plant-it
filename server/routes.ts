@@ -3,7 +3,7 @@ import Responses from "./responses";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Depending, Notifying, Project, ProjectMember, Sessioning, Task } from "./app";
+import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Sessioning, Task } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
 
 import { z } from "zod";
@@ -158,12 +158,11 @@ class Routes {
    * create task
    * only project manager can create tasks for that project
    * TODO: consider if we should limit task title length (ex: 100 characters)
-   * TODO: sync with DEADLINING --> each task should have an associated deadline
-   * TODO: decide if tasks must be assigned deadlines?
+   * TODO: decide if tasks must be assigned deadlines? currently required.
    * assignee is required arg, set to '' if unassigned
    */
   @Router.post("/project/tasks")
-  async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee: string) {
+  async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(project);
 
@@ -177,9 +176,13 @@ class Routes {
       await ProjectMember.assertItemInGroup(projectId, assigneeId);
     }
 
-    const task = await Task.createTask(title, notes, projectId, links, assignee);
-
-    return task;
+    const taskCreation = await Task.createTask(title, notes, projectId, links, assignee);
+    const deadlineCreation = await Deadlining.createDeadline(taskCreation.task._id, new Date(deadline));
+    return {
+      msg: `${taskCreation.msg} ${deadlineCreation.msg}`,
+      task: taskCreation.task,
+      deadline: deadlineCreation.deadline,
+    };
   }
 
   /**
@@ -200,16 +203,28 @@ class Routes {
     await Task.deleteTask(taskId);
   }
 
-  // TODO: implement get task deadline (sync with deadline concept)
-  @Router.get("/project/task/deadline")
-  async getTaskDeadline(session: SessionDoc, task: string) {
-    throw new NotAllowedError("NOT IMPLELMENTED");
+  /**
+   * Get the deadline for a task
+   * @param id ObjectId of the task to get the deadline for
+   * @returns The deadline date for the task
+   */
+  @Router.get("/project/task/:id/deadline")
+  async getTaskDeadline(id: string) {
+    const taskId = new ObjectId(id);
+    const deadline = await Deadlining.getItemDeadline(taskId);
+    return deadline;
   }
 
-  // TODO: implement update task deadline
-  @Router.patch("/project/task/deadline")
-  async updateTaskDeadline(session: SessionDoc, task: string) {
-    throw new NotAllowedError("NOT IMPLELMENTED");
+  /**
+   * Update the deadline for a task
+   * @param id ObjectId of the task to update the deadline for
+   * @param date New deadline for the task, parseable by Date
+   * @returns Success message
+   */
+  @Router.patch("/project/task/:id/deadline")
+  async updateTaskDeadline(id: string, date: string) {
+    const taskId = new ObjectId(id);
+    return await Deadlining.updateDeadline(taskId, new Date(date));
   }
 
   // TODO: add fn to get tasks with deadlines that are close?

@@ -7,27 +7,28 @@ const notes = ref("");
 const selectedProject = ref("");
 const links = ref<string[]>([]);
 const assignee = ref("");
+const deadline = ref("");
 
 const projects = ref<Record<string, string>[]>([]);
 const projectMembers = ref<string[]>([]);
 // const emit = defineEmits(["refreshProjects"]);
 
-const createTask = async (title: string, notes: string, project: string, links: string[], assignee: string) => {
+const createTask = async (title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) => {
   try {
     await fetchy("/api/project/tasks", "POST", {
-      body: { title, notes, project, links, assignee },
+      body: { title, notes, project, links, assignee, deadline },
     });
   } catch (_) {
     return;
   }
 };
 
-const projectOptions = computed(() => {
-  return projects.value.map((project) => ({
+const projectOptions = computed(() =>
+  projects.value.map((project) => ({
     label: project.name,
     value: project._id,
-  }));
-});
+  })),
+);
 
 async function getProjects() {
   try {
@@ -56,7 +57,7 @@ onBeforeMount(getProjects);
 </script>
 
 <template>
-  <form class="create-task-form default-border" @submit.prevent="createTask(title, notes, selectedProject, links, assignee)">
+  <form class="create-task-form default-border" @submit.prevent="createTask(title, notes, selectedProject, links, assignee, deadline)">
     <label for="content">Create a new task for a project (temp frontend placeholder)</label>
     you can only add tasks if you are the creator of a project. <br /><br />for initial testing purposes, add your username to the "Assign to:" field in order to see tasks displayed below (since on
     home page, will only show YOUR tasks)
@@ -70,6 +71,8 @@ onBeforeMount(getProjects);
       <option value="" disabled selected>Select a user to assign to</option>
       <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>
     </select>
+    <label for="deadline">Deadline:</label>
+    <input id="deadline" v-model="deadline" type="date" required />
     <button type="submit" class="pure-button-primary pure-button">Create Task</button>
   </form>
 </template>

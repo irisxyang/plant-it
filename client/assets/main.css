@@ -94,3 +94,13 @@ a.button {
   font-weight: 400;
   font-style: italic;
 }
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid black;
+  padding: 6px;
+}

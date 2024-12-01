@@ -29,7 +29,11 @@ export default class TaskingConcept {
    */
   async createTask(title: string, notes: string, project: ObjectId, links: string[], assignee: string) {
     const _id = await this.tasks.createOne({ title, notes, project, assignee, completion: false, links });
-    return { msg: "Task successfully created!", task: await this.tasks.readOne({ _id }) };
+    const task = await this.tasks.readOne({ _id });
+    if (!task) {
+      throw new NotFoundError(`Task ${_id} could not be found after creation!`);
+    }
+    return { msg: "Task successfully created!", task };
   }
 
   /**

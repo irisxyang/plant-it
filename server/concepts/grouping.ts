@@ -55,12 +55,7 @@ export default class GroupItemConcept {
   // get all items in a group
   async getItemsInGroup(group: ObjectId) {
     const itemDocs = await this.groupitems.readMany({ group }, { projection: { item: 1 } });
-    const items: Array<ObjectId> = [];
-    for (let i = 0; i < itemDocs.length; i++) {
-      const itemId = itemDocs[i].item;
-      items.push(itemId);
-    }
-    return items;
+    return itemDocs.map((item) => item.item);
   }
 
   /**
@@ -71,15 +66,10 @@ export default class GroupItemConcept {
    */
   async getGroupsForItem(item: ObjectId) {
     const itemDocs = await this.groupitems.readMany({ item: item });
-    if (!itemDocs) {
+    if (itemDocs.length === 0) {
       throw new NotFoundError(`item ${item} is not in any groups`);
     }
-    const groups: Array<ObjectId> = [];
-    for (let i = 0; i < itemDocs.length; i++) {
-      const groupId = itemDocs[i].group;
-      groups.push(groupId);
-    }
-    return groups;
+    return itemDocs.map((item) => item.group);
   }
 
   /**

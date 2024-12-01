@@ -37,7 +37,7 @@ export default class ProjectConcept {
    * @returns The specified project
    * @throws NotFoundError if project does not exist
    */
-  async getProject(_id: ObjectId) {
+  async getProjectById(_id: ObjectId) {
     const result = await this.projects.readOne({ _id });
     if (!result) {
       throw new NotFoundError(`Project with id ${_id} not found`);

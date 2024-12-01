@@ -79,9 +79,14 @@ export default class TaskingConcept {
    * Get a full task object
    * @param _id _id of the task to get
    * @returns TaskDoc of the correlated task
+   * @throws NotFoundError if no task is found
    */
   async getTaskById(_id: ObjectId) {
-    return await this.tasks.readOne({ _id });
+    const task = await this.tasks.readOne({ _id });
+    if (!task) {
+      throw new NotFoundError(`Task ${_id} not found!`);
+    }
+    return task;
   }
 
   /**

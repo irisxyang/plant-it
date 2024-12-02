@@ -242,7 +242,8 @@ class Routes {
 
     await ProjectMember.assertItemInGroup(projectId, user);
 
-    return await Task.getTasksByProject(projectId);
+    const tasks = await Task.getTasksByProject(projectId);
+    return await Responses.tasks(tasks);
   }
 
   /**

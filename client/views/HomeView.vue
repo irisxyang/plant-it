@@ -18,7 +18,7 @@ const { isLoggedIn } = storeToRefs(useUserStore());
     </section>
     <div v-if="isLoggedIn" class="container">
       <div class="tasks">
-        <TaskListComponent userHome="true" />
+        <TaskListComponent projectId="" />
       </div>
       <div class="gardens">
         <h2>My Gardens</h2>

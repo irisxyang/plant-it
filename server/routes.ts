@@ -3,7 +3,7 @@ import Responses from "./responses";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Sessioning, Task } from "./app";
+import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Rewarding, Sessioning, Task } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
 
 import { z } from "zod";
@@ -320,28 +320,47 @@ class Routes {
     return await Task.updateAssignee(taskId, "");
   }
 
-  // TODO: add fn to set task to COMPLETE
-  // sync this with reward! if it is complete, then create new reward
   /**
    * Marks a task as completed
    * @param session The session of the user
    * @param id The id of the task to complete
    */
   @Router.post("/project/task/:id/complete")
-  async markTaskAsComplete(session: SessionDoc, id: string) {}
+  async markTaskAsComplete(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const username = (await Authing.getUserById(user)).username;
+    const taskId = new ObjectId(id);
+    const task = await Task.getTaskById(taskId);
+    if (task.assignee !== username) {
+      throw new NotAllowedError("You are not assigned to this task!");
+    }
+    const taskCompletion = await Task.updateCompletionStatus(taskId, true);
+    const rewardCreation = await Rewarding.createReward(user, task.project, taskId);
+    return { msg: `${taskCompletion.msg} ${rewardCreation.msg}`, reward: rewardCreation.reward };
+  }
 
-  // TODO: add fn to set task to INCOMPLETE
-  // should we consider taking away rewards if a task is reset to incomplete?
-  // the rewarding concept should be made in a way that it does not allow you to assign
-  // multiple rewards for the same task (so if you check then uncheck then check a task,
-  // it won't just keep rewarding you new rewards, it will just have you keep the first reward)
   /**
    * Marks a task as incomplete
    * @param session The session of the user
    * @param id The id of the task to mark as incomplete
    */
   @Router.post("/project/task/:id/incomplete")
-  async markTaskAsIncomplete(session: SessionDoc, id: string) {}
+  async markTaskAsIncomplete(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const username = (await Authing.getUserById(user)).username;
+    const taskId = new ObjectId(id);
+    const task = await Task.getTaskById(taskId);
+    if (task.assignee !== username) {
+      throw new NotAllowedError("You are not assigned to this task!");
+    }
+    const taskIncompletion = await Task.updateCompletionStatus(taskId, false);
+    const taskReward = await Rewarding.getRewardByTask(taskId);
+    if (taskReward) {
+      const rewardDeletion = await Rewarding.deleteReward(taskReward._id);
+      return { msg: `${taskIncompletion.msg} ${rewardDeletion.msg}` };
+    }
+    return taskIncompletion;
+  }
 
   /**
    * Checks if a task can be started

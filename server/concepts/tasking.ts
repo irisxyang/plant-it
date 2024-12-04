@@ -52,7 +52,7 @@ export default class TaskingConcept {
    * @returns Success message
    */
   async deleteTasksForProject(project: ObjectId) {
-    await this.tasks.deleteMany({ project: project });
+    await this.tasks.deleteMany({ project });
     return { msg: "Tasks for project successfully deleted." };
   }
 
@@ -63,7 +63,7 @@ export default class TaskingConcept {
    * @returns Success message
    */
   async updateNotes(_id: ObjectId, notes: string) {
-    await this.tasks.partialUpdateOne({ _id }, { notes: notes });
+    await this.tasks.partialUpdateOne({ _id }, { notes });
     return { msg: "Task description successfully updated!" };
   }
 
@@ -75,7 +75,7 @@ export default class TaskingConcept {
    * TODO: double check null param
    */
   async updateAssignee(_id: ObjectId, assignee: string) {
-    await this.tasks.partialUpdateOne({ _id }, { assignee: assignee });
+    await this.tasks.partialUpdateOne({ _id }, { assignee });
     return { msg: "Task assignee successfully updated!" };
   }
 
@@ -99,7 +99,7 @@ export default class TaskingConcept {
    * @returns An array of TaskDocs assigned to the assignee, empty if none
    */
   async getTasksByAssignee(assignee: string) {
-    const userTasks = await this.tasks.readMany({ assignee: assignee });
+    const userTasks = await this.tasks.readMany({ assignee });
     // if (!userTasks) {
     //   throw new NotFoundError(`User ${assignee} does not have any tasks!`); //RESOLVED: Should this actually be an error or expected behavior?
     // }

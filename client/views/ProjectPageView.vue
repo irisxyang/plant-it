@@ -59,6 +59,11 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1>{{ projectName }}</h1>
+    <div v-if="projectMembers.length == 1">only one member, add more!</div>
+    <!-- <span>
+      <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Edit Project</RouterLink>
+      <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Add Member</RouterLink>
+    </span> -->
     <div>ProjectCreator: {{ projectCreator }}</div>
     <div>ProjectMembers: {{ projectMembers }}</div>
     <TaskListComponent :project-id="currentProject" />

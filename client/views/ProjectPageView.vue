@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
 import { fetchy } from "@/utils/fetchy";
 import { onBeforeMount, ref } from "vue";
@@ -12,6 +13,7 @@ const loaded = ref(false);
 const projectMembers = ref<Array<Record<string, string>>>([]);
 
 const getProject = async () => {
+  console.log("currently viewing project:", currentProject);
   const query: Record<string, string> = { id: currentProject };
   let proj;
   try {
@@ -55,8 +57,35 @@ onBeforeMount(async () => {
 });
 </script>
 <template>
-  Project Page
-  <div>Project Name: {{ projectName }}</div>
-  <div>ProjectCreator: {{ projectCreator }}</div>
-  <div>ProjectMembers: {{ projectMembers }}</div>
+  <main>
+    <h1>{{ projectName }}</h1>
+    <div>ProjectCreator: {{ projectCreator }}</div>
+    <div>ProjectMembers: {{ projectMembers }}</div>
+    <TaskListComponent :project-id="currentProject" />
+  </main>
 </template>
+
+<style scoped>
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.project-full-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  margin: 0.5em;
+}
+
+.project-name {
+  font-size: 1.5em;
+}
+
+.project-creator {
+  font-size: 1em;
+}
+</style>

@@ -21,6 +21,17 @@ a {
   text-decoration: none;
 }
 
+.main-button {
+  background-color: var(--main-accent);
+  border: 2px solid #000000;
+  width: max-content;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  font-size: 1.2em;
+  transition: 0.2s;
+  color: white;
+}
+
 button.btn-small {
   font-size: 80%;
 }

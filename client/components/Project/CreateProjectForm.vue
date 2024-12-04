@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import router from "@/router";
+import { useProjectStore } from "@/stores/project";
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
 const name = ref("");
 // const emit = defineEmits(["refreshProjects"]);
+const { updateCurrentProject } = useProjectStore();
 
 const createProject = async (name: string) => {
+  let project;
   try {
-    await fetchy("/api/projects", "POST", {
+    project = await fetchy("/api/projects", "POST", {
       body: { name },
     });
   } catch (_) {
@@ -18,6 +22,8 @@ const createProject = async (name: string) => {
   // (indicate which project we're looking at)
   // and then navigate to add user form
   // void router.push({ name: "AddUser" });
+  await updateCurrentProject(project.project._id);
+  void router.push({ name: "ProjectPage" });
 };
 </script>
 
@@ -25,7 +31,7 @@ const createProject = async (name: string) => {
   <form class="create-project-form default-border" @submit.prevent="createProject(name)">
     <label for="content">Create a new project!</label>
     <input id="content" v-model="name" type="text" placeholder="Add a project name!" required />
-    <button type="submit" class="pure-button-primary pure-button">Create Project</button>
+    <button type="submit" class="main-button">Create Project</button>
   </form>
 </template>
 

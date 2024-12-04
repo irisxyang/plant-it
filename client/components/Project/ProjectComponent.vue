@@ -24,7 +24,7 @@ const projectMembers = ref<Array<Record<string, string>>>([]);
 
 async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
-  //   console.log("updated project!", props.project._id);
+  console.log("updated project!", props.project._id);
 }
 
 const getProjectCreator = async (creatorId: string) => {
@@ -67,8 +67,8 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <div @click="updateStoreProject" v-if="loaded" class="project-full-container default-border">
-    <RouterLink :to="{ name: 'ProjectPage' }" class="project-name">{{ projectName }}</RouterLink>
+  <div v-if="loaded" class="project-full-container default-border">
+    <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" class="project-name">{{ projectName }}</RouterLink>
     <p class="project-creator">Creator: {{ projectCreator }}</p>
     <p class="project-creator">Project Id: {{ props.project._id }}</p>
     <p>Members: {{ projectMembers }}</p>

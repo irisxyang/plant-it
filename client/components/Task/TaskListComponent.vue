@@ -32,6 +32,13 @@ async function getTasks() {
   lengthtasks.value = fetchedTasks.length;
 }
 
+async function toggleTaskCompletion(task: Record<string, any>) {
+  // TODO: to be called when task marked complete/incomplete
+  throw new Error("not implemented");
+  // check task.completion
+  // markTaskAsComplete or markTaskAsIncomplete
+}
+
 onBeforeMount(async () => {
   await getTasks();
   loaded.value = true;

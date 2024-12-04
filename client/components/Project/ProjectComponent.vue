@@ -24,7 +24,7 @@ const projectMembers = ref<Array<Record<string, string>>>([]);
 
 async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
-  console.log("updated project!", props.project._id);
+  //   console.log("updated project!", props.project._id);
 }
 
 const getProjectCreator = async (creatorId: string) => {

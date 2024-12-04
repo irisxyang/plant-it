@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useProjectStore } from "@/stores/project";
+import { useTaskStore } from "@/stores/task";
+import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { onBeforeMount, ref } from "vue";
 
@@ -6,11 +9,17 @@ const loaded = ref(false);
 // set to a value if we are on the user home
 // (i.e. only fetch user tasks)
 // else we fetch the project's tasks
-const props = defineProps<{
-  projectId: string;
-}>();
+// const props = defineProps<{
+//   projectId: string;
+// }>();
+const props = defineProps(["projectId", "isUserCreator"]);
 const tasks = ref<Array<Record<string, any>>>([]);
 const lengthtasks = ref(0);
+const { updateCurrentTask } = useTaskStore();
+const isUserCreator = props.isUserCreator ? props.isUserCreator : false;
+
+const { currentUsername } = useUserStore();
+const { currentProject } = useProjectStore();
 
 async function getTasks() {
   let fetchedTasks;
@@ -37,6 +46,11 @@ async function toggleTaskCompletion(task: Record<string, any>) {
   throw new Error("not implemented");
   // check task.completion
   // markTaskAsComplete or markTaskAsIncomplete
+}
+
+async function editTask(task: Record<string, any>) {
+  await updateCurrentTask(task._id);
+  // void router.push({ name: "EditTask" });
 }
 
 onBeforeMount(async () => {
@@ -83,6 +97,7 @@ onBeforeMount(async () => {
           <th style="width: 5%">Assigned To</th>
           <th style="width: 10%">Status</th>
           <th style="width: 15%">Link(s)</th>
+          <th style="width: 10%">Edit?</th>
         </tr>
       </thead>
       <tbody>
@@ -94,12 +109,17 @@ onBeforeMount(async () => {
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
           <td class="center">{{ task.assignee }}</td>
+          <!-- TODO: IF NOT ASSIGNED + CREATOR, then add "add assignee" button -->
           <td>{{ task.completion ? "Completed" : "Incomplete" }}</td>
+          <!-- TODO: add edit task functionality -->
           <td>
             <ul>
               <li v-for="link in task.links" :key="link">{{ link }}</li>
             </ul>
           </td>
+          <!-- TODO add v-else: if not creator, then you can edit task notes but nothing else!-->
+          <td v-if="isUserCreator"><button @click="editTask" class="small-button">Edit Task</button></td>
+          <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td>
         </tr>
       </tbody>
     </table>

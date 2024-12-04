@@ -1,14 +1,20 @@
 <script setup lang="ts">
+import AddUserForm from "@/components/Project/AddUserForm.vue";
+import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
 import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
+import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { onBeforeMount, ref } from "vue";
 
+const { currentUsername } = useUserStore();
 const { currentProject } = useProjectStore();
 const projectName = ref("");
 const projectCreatorId = ref("");
 const projectCreator = ref("");
 const loaded = ref(false);
+
+const isUserCreator = ref(false);
 
 const projectMembers = ref<Array<Record<string, string>>>([]);
 
@@ -23,6 +29,19 @@ const getProject = async () => {
   }
   projectName.value = proj.name;
   projectCreatorId.value = proj.creator;
+
+  // get username for creator id
+  let creator;
+  try {
+    creator = await fetchy(`/api/users/username/${proj.creator}`, "GET");
+  } catch (_) {
+    return "Project Creator Not Found";
+  }
+
+  // if creator is current user, then set isUserCreator to ture
+  if (creator == currentUsername) {
+    isUserCreator.value = true;
+  }
 };
 
 const getProjectMembers = async () => {
@@ -59,14 +78,23 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1>{{ projectName }}</h1>
-    <div v-if="projectMembers.length == 1">only one member, add more!</div>
+    <div>project garden here!!!</div>
+    <div>is user creator? {{ isUserCreator }}</div>
+    <div class="project-creator">Project Creator: {{ projectCreator }}</div>
     <!-- <span>
       <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Edit Project</RouterLink>
       <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Add Member</RouterLink>
     </span> -->
-    <div>ProjectCreator: {{ projectCreator }}</div>
-    <div>ProjectMembers: {{ projectMembers }}</div>
-    <TaskListComponent :project-id="currentProject" />
+
+    <span class="project-body">
+      <!-- <div>ProjectMembers: {{ projectMembers }}</div> -->
+      <div class="project-body-container"><TaskListComponent :project-id="currentProject" :is-user-creator="isUserCreator" /></div>
+      <div class="project-body-container">
+        <AddUserForm v-if="isUserCreator" />
+        <h2>Members</h2>
+        <ProjectMemberListComponent :is-user-creator="isUserCreator" />
+      </div>
+    </span>
   </main>
 </template>
 
@@ -77,6 +105,7 @@ main {
   align-items: center;
   justify-content: center;
 }
+
 .project-full-container {
   display: flex;
   flex-direction: column;
@@ -91,6 +120,21 @@ main {
 }
 
 .project-creator {
-  font-size: 1em;
+  font-size: 1.25em;
+  font-weight: 700;
+}
+
+.project-body {
+  display: flex;
+  flex-direction: row;
+  align-items: top;
+  justify-content: center;
+}
+
+.project-body-container {
+  display: flex;
+  flex-direction: column;
+  margin: 1.5em;
+  align-items: center;
 }
 </style>

@@ -26,8 +26,9 @@ async function resetTask() {
 }
 
 onBeforeMount(async () => {
-  await resetProject();
-  await resetTask();
+  //TODO: should reset or not?
+  // await resetProject();
+  // await resetTask();
 });
 </script>
 

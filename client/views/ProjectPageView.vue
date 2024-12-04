@@ -48,6 +48,7 @@ const getProjectCreator = async (creatorId: string) => {
 
 onBeforeMount(async () => {
   await getProject();
+  console.log("this is the current project page for:", currentProject);
   await getProjectCreator(projectCreatorId.value);
   await getProjectMembers();
   loaded.value = true;

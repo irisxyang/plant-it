@@ -149,7 +149,7 @@ class Routes {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(id);
 
-    await ProjectMember.assertItemInGroup(projectId, user);
+    // await ProjectMember.assertItemInGroup(projectId, user);
     const memberIds = await ProjectMember.getItemsInGroup(projectId);
     return await Authing.idsToUsernames(memberIds);
   }

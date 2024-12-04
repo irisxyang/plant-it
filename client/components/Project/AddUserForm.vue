@@ -34,7 +34,7 @@ const addMember = async (id: string, member: string) => {
     only owner can add members to a project
     <input id="Project Id:" v-model="project" type="text" placeholder="Add project id (temp frontend placeholder)" required />
     <input id="Member Username:" v-model="member" type="text" placeholder="Member Username" required />
-    <button type="submit" class="pure-button-primary pure-button">Add Member</button>
+    <button type="submit" class="main-button">Add Member</button>
   </form>
 </template>
 

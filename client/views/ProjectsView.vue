@@ -27,6 +27,7 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1 class="main-page-heading">Your Projects</h1>
+    <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Start a New Project</RouterLink>
     <ProjectListComponent />
   </main>
 </template>

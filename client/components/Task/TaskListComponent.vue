@@ -131,7 +131,7 @@ onBeforeMount(async () => {
           <td>{{ task.notes }}</td>
 
           <td v-if="isUserCreator && !task.completion">
-            <span v-if="task.assignee"><button @click="unassignTask(task._id)" class="small-button">-</button> {{ task.assignee }}</span>
+            <span v-if="task.assignee"> {{ task.assignee }}</span>
             <select v-else :value="task.assignee" @change="assignTask(task._id, ($event.target as HTMLSelectElement).selectedOptions[0].value)">
               <option value="">Unassigned</option>
               <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>

@@ -30,6 +30,7 @@ const getProject = async () => {
     return;
   }
   project.value = proj;
+  projectName.value = proj.name;
 
   // get username for creator id
   let creator;

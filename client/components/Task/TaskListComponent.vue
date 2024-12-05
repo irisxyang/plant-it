@@ -3,16 +3,14 @@ import { useProjectStore } from "@/stores/project";
 import { useTaskStore } from "@/stores/task";
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
-import { onBeforeMount, ref } from "vue";
+import { defineEmits, onBeforeMount, ref } from "vue";
 
 const loaded = ref(false);
 // set to a value if we are on the user home
 // (i.e. only fetch user tasks)
 // else we fetch the project's tasks
-// const props = defineProps<{
-//   projectId: string;
-// }>();
 const props = defineProps(["projectId", "isUserCreator"]);
+const emit = defineEmits(["refreshRewards"]);
 const tasks = ref<Array<Record<string, any>>>([]);
 const lengthtasks = ref(0);
 const { updateCurrentTask } = useTaskStore();
@@ -42,10 +40,13 @@ async function getTasks() {
 }
 
 async function toggleTaskCompletion(task: Record<string, any>) {
-  // TODO: to be called when task marked complete/incomplete
-  throw new Error("not implemented");
-  // check task.completion
-  // markTaskAsComplete or markTaskAsIncomplete
+  try {
+    await fetchy(`api/project/task/${task._id}/${task.completion ? "incomplete" : "complete"}`, "POST");
+    await getTasks();
+    emit("refreshRewards");
+  } catch (_) {
+    return;
+  }
 }
 
 async function editTask(task: Record<string, any>) {
@@ -75,7 +76,7 @@ onBeforeMount(async () => {
       <tbody>
         <tr v-for="task in tasks" :key="task._id" :style="{ 'background-color': task.completion ? 'lightgreen' : '' }">
           <td class="center">
-            <input type="checkbox" :checked="task.completion" disabled />
+            <input type="checkbox" :checked="task.completion" @click="toggleTaskCompletion(task)" />
           </td>
           <td class="center">{{ task.deadline }}</td>
           <td>{{ task.title }}</td>
@@ -103,7 +104,7 @@ onBeforeMount(async () => {
       <tbody>
         <tr v-for="task in tasks" :key="task._id" :style="{ 'background-color': task.completion ? 'lightgreen' : '' }">
           <td class="center">
-            <input type="checkbox" :checked="task.completion" disabled />
+            <input type="checkbox" :checked="task.completion" @click="toggleTaskCompletion(task)" />
           </td>
           <td class="center">{{ task.deadline }}</td>
           <td>{{ task.title }}</td>

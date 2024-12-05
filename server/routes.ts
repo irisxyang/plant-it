@@ -321,6 +321,23 @@ class Routes {
   }
 
   /**
+   * Get rewards by user, project, or task
+   * @param session The session of the user
+   * @param project The objectId of the project to check for
+   * @param task The task to check for a reward
+   * @returns A list of the rewards found
+   */
+  @Router.get("/rewards")
+  async getRewards(session: SessionDoc, project?: string, task?: string) {
+    const user = Sessioning.getUser(session);
+    return await Rewarding.getRewards({
+      user,
+      project: project ? new ObjectId(project) : undefined,
+      task: task ? new ObjectId(task) : undefined,
+    });
+  }
+
+  /**
    * Marks a task as completed
    * @param session The session of the user
    * @param id The id of the task to complete
@@ -354,10 +371,10 @@ class Routes {
       throw new NotAllowedError("You are not assigned to this task!");
     }
     const taskIncompletion = await Task.updateCompletionStatus(taskId, false);
-    const taskReward = await Rewarding.getRewardByTask(taskId);
+    const taskReward = (await Rewarding.getRewards({ task: taskId }))[0];
     if (taskReward) {
       const rewardDeletion = await Rewarding.deleteReward(taskReward._id);
-      return { msg: `${taskIncompletion.msg} ${rewardDeletion.msg}` };
+      return { msg: `${taskIncompletion.msg} ${rewardDeletion?.msg}` };
     }
     return taskIncompletion;
   }
@@ -472,89 +489,6 @@ class Routes {
     Sessioning.end(session);
     return { msg: "Logged out!" };
   }
-
-  // @Router.get("/posts")
-  // @Router.validate(z.object({ author: z.string().optional() }))
-  // async getPosts(author?: string) {
-  //   let posts;
-  //   if (author) {
-  //     const id = (await Authing.getUserByUsername(author))._id;
-  //     posts = await Posting.getByAuthor(id);
-  //   } else {
-  //     posts = await Posting.getPosts();
-  //   }
-  //   return Responses.posts(posts);
-  // }
-
-  // @Router.post("/posts")
-  // async createPost(session: SessionDoc, content: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const created = await Posting.create(user, content, options);
-  //   return { msg: created.msg, post: await Responses.post(created.post) };
-  // }
-
-  // @Router.patch("/posts/:id")
-  // async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return await Posting.update(oid, content, options);
-  // }
-
-  // @Router.delete("/posts/:id")
-  // async deletePost(session: SessionDoc, id: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return Posting.delete(oid);
-  // }
-
-  // @Router.get("/friends")
-  // async getFriends(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Authing.idsToUsernames(await Friending.getFriends(user));
-  // }
-
-  // @Router.delete("/friends/:friend")
-  // async removeFriend(session: SessionDoc, friend: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const friendOid = (await Authing.getUserByUsername(friend))._id;
-  //   return await Friending.removeFriend(user, friendOid);
-  // }
-
-  // @Router.get("/friend/requests")
-  // async getRequests(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Responses.friendRequests(await Friending.getRequests(user));
-  // }
-
-  // @Router.post("/friend/requests/:to")
-  // async sendFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.sendRequest(user, toOid);
-  // }
-
-  // @Router.delete("/friend/requests/:to")
-  // async removeFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.removeRequest(user, toOid);
-  // }
-
-  // @Router.put("/friend/accept/:from")
-  // async acceptFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.acceptRequest(fromOid, user);
-  // }
-
-  // @Router.put("/friend/reject/:from")
-  // async rejectFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.rejectRequest(fromOid, user);
-  // }
 }
 
 /** The web app. */

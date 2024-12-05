@@ -6,13 +6,16 @@ import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
 import { useTaskStore } from "@/stores/task";
 import { useUserStore } from "@/stores/user";
+import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
-import { onBeforeMount } from "vue";
+import { onBeforeMount, ref } from "vue";
 
 const { isLoggedIn } = storeToRefs(useUserStore());
 
 const { resetProjectStore } = useProjectStore();
 const { resetTaskStore } = useTaskStore();
+
+const rewards = ref<Array<Record<string, string>>>([]);
 
 // resets store to hold no task
 async function resetProject() {
@@ -24,10 +27,19 @@ async function resetTask() {
   await resetTaskStore();
 }
 
+async function getUserRewards() {
+  try {
+    rewards.value = await fetchy("api/rewards", "GET");
+  } catch (_) {
+    return;
+  }
+}
+
 onBeforeMount(async () => {
   //TODO: should reset or not?
   // await resetProject();
   // await resetTask();
+  await getUserRewards();
 });
 </script>
 
@@ -39,10 +51,17 @@ onBeforeMount(async () => {
     </section>
     <div v-if="isLoggedIn" class="container">
       <div class="tasks">
-        <TaskListComponent projectId="" />
+        <TaskListComponent projectId="" @refreshRewards="getUserRewards" />
       </div>
       <div class="gardens">
         <h2>My Gardens</h2>
+        <!-- TODO: separate into different projects, currently displaying all user rewards -->
+        <div class="project">
+          <div v-for="reward in rewards" :key="reward._id" class="reward">
+            <h3>{{ reward.name }}</h3>
+            <img :src="`/images/rewards/${reward.icon}`" :alt="reward.icon" />
+          </div>
+        </div>
       </div>
     </div>
     <div v-if="isLoggedIn">
@@ -72,14 +91,32 @@ h1 {
 }
 
 .tasks {
-  flex-grow: 4;
+  flex: 4;
 }
 
 .gardens {
-  flex-grow: 3;
+  flex: 3;
 }
 
 .gardens h2 {
   text-align: center;
+}
+
+.project {
+  display: flex;
+  align-items: center;
+  margin: 0.5em;
+  height: 200px;
+}
+
+.reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reward img {
+  width: 100px;
+  height: 100px;
 }
 </style>

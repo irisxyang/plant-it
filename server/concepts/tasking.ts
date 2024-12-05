@@ -118,10 +118,7 @@ export default class TaskingConcept {
     if (!result.matchedCount) {
       throw new NotFoundError(`Task: ${_id} not found to update completion status`);
     }
-    if (completion) {
-      return { msg: "Task marked as completed!" };
-    }
-    return { msg: "Task marked incomplete." };
+    return { msg: `Task marked ${completion ? "completed" : "incomplete"}.` };
   }
 
   /**

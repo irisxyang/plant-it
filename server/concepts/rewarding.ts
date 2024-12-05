@@ -10,19 +10,24 @@ export interface RewardDoc extends BaseDoc {
   task: ObjectId; // task it is associated with
 }
 
-// TODO: create mapping of reward names to paths
-const icons: Map<string, string> = new Map<string, string>([["TODO: Reward name", "TODO: link/path to icon here"]]);
+const icons: Map<string, string> = new Map<string, string>([
+  ["Flower 2", "reward2.svg"],
+  ["Flower 3", "reward3.svg"],
+  ["Flower 1", "reward1.svg"],
+  ["Flower 4", "reward4.svg"],
+  ["Flower 5", "reward5.svg"],
+  ["Flower 6", "reward6.svg"],
+  ["Flower 7", "reward7.svg"],
+]);
 
+// on the project page, we get rewards by project and display all of them
+
+//  on the user page, we get rewards by user and display all of them
+
+//  could be cool to add a on-hover feature that displays the task text corresponding
+//  to the reward
 /**
  * concept Rewarding [User, Project, Task]
- *
- * on the project page, we get rewards by project and display all of them
- *
- * on the user page, we get rewards by user and display all of them
- *
- * could be cool to add a on-hover feature that displays the task text corresponding
- * to the reward
- *
  */
 export default class RewardingConcept {
   public readonly rewards: DocCollection<RewardDoc>;
@@ -37,7 +42,7 @@ export default class RewardingConcept {
 
   async createReward(user: ObjectId, project: ObjectId, task: ObjectId) {
     // get a random icon name that user doesn't already have
-    const userRewards = new Set((await this.getRewardsByUser(user)).map((reward) => reward.name));
+    const userRewards = new Set((await this.getRewards({ user })).map((reward) => reward.name));
     const newRewards = Array.from(icons.keys()).filter((iconName) => !userRewards.has(iconName));
     if (newRewards.length === 0) {
       throw new NotAllowedError(`You have already reached the maximum number of rewards (${userRewards.size})`);
@@ -51,41 +56,34 @@ export default class RewardingConcept {
     if (!reward) {
       throw new NotFoundError(`Reward ${_id} could not be found after creation!`);
     }
-    return { msg: `Reward successfully created`, reward };
+    return { msg: `You earned ${name}!`, reward };
   }
 
   /**
-   * Get a user's rewards
+   * Get rewards by user, project, or task
    * @param user Username of the user to check for
-   * @returns A list of the rewards a user has
-   */
-  async getRewardsByUser(user: ObjectId) {
-    const rewards = await this.rewards.readMany({ user });
-    return rewards;
-  }
-
-  /**
-   * Get a project's rewards
    * @param project The objectId of the project to check for
-   * @returns A list of rewards for that project
-   */
-  async getRewardsByProject(project: ObjectId) {
-    const rewards = await this.rewards.readMany({ project });
-    return rewards;
-  }
-
-  /**
-   * Get the reward assigned to a certain task
    * @param task The task to check for a reward
-   * @returns The reward associated with the task
-   * @throws NotFoundError if no reward is associated with that task
+   * @returns A list of the rewards found
    */
-  async getRewardByTask(task: ObjectId) {
-    const reward = this.rewards.readOne({ task });
-    if (!reward) {
+  async getRewards({ user, project, task }: { user?: ObjectId; project?: ObjectId; task?: ObjectId } = {}) {
+    const query: { [key: string]: ObjectId } = {};
+
+    if (user) {
+      query.user = user;
+    }
+    if (project) {
+      query.project = project;
+    }
+    if (task) {
+      query.task = task;
+    }
+
+    const rewards = await this.rewards.readMany(query);
+    if (task && rewards.length === 0) {
       throw new NotFoundError(`Task ${task} has no reward associated`);
     }
-    return reward;
+    return rewards;
   }
 
   /**
@@ -94,8 +92,11 @@ export default class RewardingConcept {
    * @returns Success message
    */
   async deleteReward(_id: ObjectId) {
-    await this.rewards.deleteOne({ _id });
-    return { msg: "Reward deleted successfully!" };
+    const reward = await this.rewards.readOne({ _id });
+    if (reward) {
+      await this.rewards.deleteOne({ _id });
+      return { msg: `You lost ${reward.name}!` };
+    }
   }
 
   /**

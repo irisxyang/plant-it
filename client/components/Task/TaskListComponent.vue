@@ -10,7 +10,7 @@ const loaded = ref(false);
 // set to a value if we are on the user home
 // (i.e. only fetch user tasks)
 // else we fetch the project's tasks
-const props = defineProps(["projectId", "projectMembers", "isUserCreator"]);
+const props = defineProps(["projectId", "projectMembers", "isCreator"]);
 const emit = defineEmits(["refreshRewards"]);
 const tasks = ref<Record<string, any>[]>([]);
 const lengthtasks = ref(0);
@@ -53,24 +53,6 @@ async function toggleTaskCompletion(task: Record<string, any>) {
 async function editTask(task: string) {
   await updateCurrentTask(task);
   void router.push({ name: "EditTask" });
-}
-
-async function assignTask(taskId: string, member: string) {
-  try {
-    await fetchy(`api/project/task/${taskId}/assignees`, "POST", { body: { assignee: member } });
-    await getTasks();
-  } catch (_) {
-    return;
-  }
-}
-
-async function unassignTask(taskId: string) {
-  try {
-    await fetchy(`api/project/task/${taskId}/assignees`, "DELETE");
-    await getTasks();
-  } catch (_) {
-    return;
-  }
 }
 
 async function assignTask(taskId: string, member: string) {
@@ -136,7 +118,7 @@ onBeforeMount(async () => {
           <th style="width: 5%">Assigned To</th>
           <th style="width: 10%">Status</th>
           <!-- <th style="width: 15%">Link(s)</th> -->
-          <th style="width: 10%">Edit?</th>
+          <th v-if="isUserCreator" style="width: 10%">Edit?</th>
         </tr>
       </thead>
       <tbody>
@@ -162,10 +144,9 @@ onBeforeMount(async () => {
               <li v-for="link in task.links" :key="link">{{ link }}</li>
             </ul>
           </td>
-          -->
           <!-- TODO add v-else: if not creator, then you can edit task notes but nothing else!-->
           <td v-if="isUserCreator"><button @click="editTask(task._id)" class="small-button">Edit Task</button></td>
-          <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td>
+          <!-- <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td> -->
         </tr>
       </tbody>
     </table>

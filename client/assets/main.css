@@ -22,6 +22,11 @@ a {
   text-decoration: none;
 }
 
+.main-button,
+.small-button {
+  cursor: pointer;
+}
+
 .main-button {
   background-color: var(--main-accent);
   border: 2px solid #000000;
@@ -51,7 +56,6 @@ a {
 
 .small-button:hover {
   background-color: #8fbf83;
-  cursor: pointer;
 }
 
 button.btn-small {

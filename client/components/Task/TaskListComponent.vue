@@ -15,7 +15,6 @@ const emit = defineEmits(["refreshRewards"]);
 const tasks = ref<Record<string, any>[]>([]);
 const lengthtasks = ref(0);
 const { updateCurrentTask } = useTaskStore();
-const isUserCreator = ref("");
 
 const { currentUsername } = useUserStore();
 const { currentProject } = useProjectStore();
@@ -75,7 +74,6 @@ async function unassignTask(taskId: string) {
 
 onBeforeMount(async () => {
   await getTasks();
-  isUserCreator.value = props.isCreator ? props.isCreator : "true";
   loaded.value = true;
 });
 </script>
@@ -118,7 +116,7 @@ onBeforeMount(async () => {
           <th style="width: 5%">Assigned To</th>
           <th style="width: 10%">Status</th>
           <!-- <th style="width: 15%">Link(s)</th> -->
-          <th v-if="isUserCreator" style="width: 10%">Edit?</th>
+          <th v-if="isCreator" style="width: 10%">Edit?</th>
         </tr>
       </thead>
       <tbody>
@@ -130,7 +128,7 @@ onBeforeMount(async () => {
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
 
-          <td v-if="isUserCreator && !task.completion">
+          <td v-if="isCreator && !task.completion">
             <span v-if="task.assignee"> {{ task.assignee }}</span>
             <select v-else :value="task.assignee" @change="assignTask(task._id, ($event.target as HTMLSelectElement).selectedOptions[0].value)">
               <option value="">Unassigned</option>
@@ -145,7 +143,7 @@ onBeforeMount(async () => {
             </ul>
           </td>
           <!-- TODO add v-else: if not creator, then you can edit task notes but nothing else!-->
-          <td v-if="isUserCreator"><button @click="editTask(task._id)" class="small-button">Edit Task</button></td>
+          <td v-if="isCreator"><button @click="editTask(task._id)" class="small-button">Edit Task</button></td>
           <!-- <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td> -->
         </tr>
       </tbody>

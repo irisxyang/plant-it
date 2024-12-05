@@ -32,8 +32,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <section class="project-progress" v-if="loaded && tasks.length !== 0">
-    <div class="w-full max-w-md mx-auto p-4">
+    <div class="w-full max-w-md mx-auto p-4" v-if="loaded && tasks.length !== 0">
     <div class="bg-gray-200 rounded-full h-6 mb-4">
       <div 
         class="bg-blue-600 h-6 rounded-full transition-all duration-500 ease-in-out" 
@@ -44,5 +43,4 @@ onBeforeMount(async () => {
         </div>
       </div>
     </div>
-  </section>
 </template>

@@ -204,6 +204,18 @@ class Routes {
   }
 
   /**
+   * get singular task
+   * only project manager can delete tasks for that project
+   */
+  @Router.get("/task")
+  async getTask(session: SessionDoc, task: string) {
+    const user = Sessioning.getUser(session);
+    const taskId = new ObjectId(task);
+
+    return await Task.getTaskById(taskId);
+  }
+
+  /**
    * Get the deadline for a task
    * @param id ObjectId of the task to get the deadline for
    * @returns The deadline date for the task
@@ -265,8 +277,31 @@ class Routes {
    * update task notes
    * any member of project can update project's task notes
    */
-  @Router.patch("/project/task/description")
-  async updateTaskDescription(session: SessionDoc, task: string, notes: string) {
+  @Router.patch("/project/tasks/:id")
+  async updateTask(session: SessionDoc, id: string, title: string, notes: string, assignee: string, deadline: string) {
+    const user = Sessioning.getUser(session);
+    const taskId = new ObjectId(id);
+
+    const projectId = (await Task.getTaskById(taskId))?.project;
+    if (!projectId) {
+      throw new NotAllowedError("Task does not exist!");
+    }
+    await ProjectMember.assertItemInGroup(projectId, user);
+
+    // set user as new assignee
+    await Task.updateAssignee(taskId, assignee);
+
+    await Task.updateTitle(taskId, title);
+    await Task.updateNotes(taskId, notes);
+    return { msg: `Successfully updated task!` };
+  }
+
+  /**
+   * update task notes
+   * any member of project can update project's task notes
+   */
+  @Router.patch("/project/task/notes")
+  async updateTaskNotes(session: SessionDoc, task: string, notes: string) {
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
 

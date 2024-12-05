@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from "vue";
+import { useProjectStore } from "@/stores/project";
+import { storeToRefs } from "pinia";
+import { computed, onBeforeMount, ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
 const title = ref("");
 const notes = ref("");
-const selectedProject = ref("");
+const { currentProject } = storeToRefs(useProjectStore());
 const links = ref<string[]>([]);
 const assignee = ref("");
 const deadline = ref("");
@@ -49,31 +51,38 @@ const getProjectMembers = async (id: string) => {
   }
 };
 
-watch(selectedProject, () => {
-  getProjectMembers(selectedProject.value);
-});
-
 onBeforeMount(getProjects);
 </script>
 
 <template>
-  <form class="create-task-form default-border" @submit.prevent="createTask(title, notes, selectedProject, links, assignee, deadline)">
-    <label for="content">Create a new task for a project (temp frontend placeholder)</label>
-    you can only add tasks if you are the creator of a project. <br /><br />for initial testing purposes, add your username to the "Assign to:" field in order to see tasks displayed below (since on
-    home page, will only show YOUR tasks)
-    <input id="Title:" v-model="title" type="text" placeholder="Add a task title!" required />
-    <input id="Notes:" v-model="notes" type="text" placeholder="Add any extra notes!" required />
-    <select id="Project Id:" v-model="selectedProject" required @change="getProjectMembers(selectedProject)">
-      <option value="" disabled selected>Select a project</option>
-      <option v-for="project in projectOptions" :key="project.value" :value="project.value">{{ project.label }}</option>
-    </select>
-    <select id="Assign to:" v-model="assignee" required>
-      <option value="" disabled selected>Select a user to assign to</option>
-      <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>
-    </select>
-    <label for="deadline">Deadline:</label>
-    <input id="deadline" v-model="deadline" type="date" required />
-    <button type="submit" class="main-button">Create Task</button>
+  <form class="create-task-form default-border" @submit.prevent="createTask(title, notes, currentProject, links, assignee, deadline)">
+    <h2>Add a New Task:</h2>
+    <span class="inputs">
+      <div class="input-col">
+        <span class="input-item">
+          <label for="Title:">Title:</label>
+          <input id="Title:" v-model="title" type="text" placeholder="Add a task title!" required
+        /></span>
+        <span class="input-item">
+          <label for="deadline">Deadline:</label>
+          <input id="deadline" v-model="deadline" type="date" required />
+        </span>
+      </div>
+      <div class="input-col">
+        <span class="input-item">
+          <label for="Notes:">Notes:</label>
+          <input id="Notes:" v-model="notes" type="text" placeholder="Add any extra notes!" required />
+        </span>
+        <span class="input-item">
+          <label for="Assign to:">Assignee:</label>
+          <select style="margin-left: 0.5em" id="Assign to:" v-model="assignee" required>
+            <option value="" disabled selected>Select a user to assign to</option>
+            <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>
+          </select>
+        </span>
+      </div>
+    </span>
+    <button type="submit" class="main-button" style="margin-top: 0">Create Task</button>
   </form>
 </template>
 
@@ -84,6 +93,13 @@ onBeforeMount(getProjects);
   justify-content: center;
   align-items: center;
   margin: 0.5em;
+  width: 90%;
+}
+
+h2 {
+  margin: 0;
+  margin-top: 0.25em;
+  padding-bottom: 0;
 }
 
 form {
@@ -101,5 +117,31 @@ textarea {
   padding: 0.5em;
   border-radius: 4px;
   resize: none;
+}
+
+input {
+  margin: 0.5em;
+}
+
+.input-col {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  padding-top: 0.1;
+  padding-bottom: 0.1;
+}
+
+.inputs {
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.input-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 </style>

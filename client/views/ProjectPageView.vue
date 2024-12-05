@@ -1,25 +1,27 @@
 <script setup lang="ts">
 import AddUserForm from "@/components/Project/AddUserForm.vue";
 import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
+import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
 import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
+import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 
 const { currentUsername } = useUserStore();
-const { currentProject } = useProjectStore();
-const project = ref<Record<string, string>>();
+const { currentProject } = storeToRefs(useProjectStore());
+const projectName = ref("");
+const projectCreatorId = ref("");
 const projectCreator = ref("");
 const loaded = ref(false);
 
-const isUserCreator = ref(false);
+const isUserCreator = ref("");
 
 const projectMembers = ref<Array<Record<string, string>>>([]);
 
 const getProject = async () => {
-  console.log("currently viewing project:", currentProject);
-  const query: Record<string, string> = { id: currentProject };
+  const query: Record<string, string> = { id: currentProject.value };
   let proj;
   try {
     proj = await fetchy("/api/projects", "GET", { query });
@@ -38,13 +40,13 @@ const getProject = async () => {
 
   // if creator is current user, then set isUserCreator to ture
   if (creator == currentUsername) {
-    isUserCreator.value = true;
+    isUserCreator.value = "true";
   }
 };
 
 const getProjectMembers = async () => {
   // get project members here
-  const query: Record<string, string> = { id: currentProject };
+  const query: Record<string, string> = { id: currentProject.value };
   let members;
   try {
     members = await fetchy("/api/project/members", "GET", { query });
@@ -75,18 +77,22 @@ onBeforeMount(async () => {
 </script>
 <template>
   <main>
-    <h1>{{ project?.name }}</h1>
+    <h1>{{ projectName }}</h1>
     <div>project garden here!!!</div>
     <div>is user creator? {{ isUserCreator }}</div>
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
+    <div>project garden here!!!</div>
+
     <!-- <span>
       <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Edit Project</RouterLink>
       <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Add Member</RouterLink>
     </span> -->
 
     <span class="project-body">
-      <!-- <div>ProjectMembers: {{ projectMembers }}</div> -->
-      <div class="project-body-container"><TaskListComponent :project-id="currentProject" :projectMembers="projectMembers" :isUserCreator="isUserCreator" /></div>
+      <div class="project-body-container">
+        <CreateTaskForm v-if="isUserCreator" />
+        <TaskListComponent :project-id="currentProject" :is-creator="isUserCreator" />
+      </div>
       <div class="project-body-container">
         <AddUserForm v-if="isUserCreator" />
         <h2>Members</h2>

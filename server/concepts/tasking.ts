@@ -59,6 +59,17 @@ export default class TaskingConcept {
   /**
    * Update the description of a task
    * @param _id The _id of the task to update the description of
+   * @param title New title for the task
+   * @returns Success message
+   */
+  async updateTitle(_id: ObjectId, title: string) {
+    await this.tasks.partialUpdateOne({ _id }, { title });
+    return { msg: "Task title successfully updated!" };
+  }
+
+  /**
+   * Update the description of a task
+   * @param _id The _id of the task to update the description of
    * @param description New description for the task
    * @returns Success message
    */

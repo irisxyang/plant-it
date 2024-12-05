@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useProjectStore } from "@/stores/project";
+import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
 const member = ref("");
 
-const { currentProject } = useProjectStore();
+const { currentProject } = storeToRefs(useProjectStore());
 
 const addMember = async (member: string) => {
-  const id = currentProject;
+  const id = currentProject.value;
   // convert member username to id
   let memberId;
   // get member id from username

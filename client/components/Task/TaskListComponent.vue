@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import router from "@/router";
 import { useProjectStore } from "@/stores/project";
 import { useTaskStore } from "@/stores/task";
 import { useUserStore } from "@/stores/user";
@@ -14,6 +15,7 @@ const emit = defineEmits(["refreshRewards"]);
 const tasks = ref<Record<string, any>[]>([]);
 const lengthtasks = ref(0);
 const { updateCurrentTask } = useTaskStore();
+const isUserCreator = ref("");
 
 const { currentUsername } = useUserStore();
 const { currentProject } = useProjectStore();
@@ -48,9 +50,27 @@ async function toggleTaskCompletion(task: Record<string, any>) {
   }
 }
 
-async function editTask(task: Record<string, any>) {
-  await updateCurrentTask(task._id);
-  // void router.push({ name: "EditTask" });
+async function editTask(task: string) {
+  await updateCurrentTask(task);
+  void router.push({ name: "EditTask" });
+}
+
+async function assignTask(taskId: string, member: string) {
+  try {
+    await fetchy(`api/project/task/${taskId}/assignees`, "POST", { body: { assignee: member } });
+    await getTasks();
+  } catch (_) {
+    return;
+  }
+}
+
+async function unassignTask(taskId: string) {
+  try {
+    await fetchy(`api/project/task/${taskId}/assignees`, "DELETE");
+    await getTasks();
+  } catch (_) {
+    return;
+  }
 }
 
 async function assignTask(taskId: string, member: string) {
@@ -73,6 +93,7 @@ async function unassignTask(taskId: string) {
 
 onBeforeMount(async () => {
   await getTasks();
+  isUserCreator.value = props.isCreator ? props.isCreator : "true";
   loaded.value = true;
 });
 </script>
@@ -104,7 +125,7 @@ onBeforeMount(async () => {
     </table>
   </section>
   <section class="task-list" v-else-if="loaded">
-    <h2>Tasks</h2>
+    <h2>Project Tasks</h2>
     <table>
       <thead>
         <tr>
@@ -114,7 +135,7 @@ onBeforeMount(async () => {
           <th style="width: 35%">Notes</th>
           <th style="width: 5%">Assigned To</th>
           <th style="width: 10%">Status</th>
-          <th style="width: 15%">Link(s)</th>
+          <!-- <th style="width: 15%">Link(s)</th> -->
           <th style="width: 10%">Edit?</th>
         </tr>
       </thead>
@@ -141,8 +162,9 @@ onBeforeMount(async () => {
               <li v-for="link in task.links" :key="link">{{ link }}</li>
             </ul>
           </td>
+          -->
           <!-- TODO add v-else: if not creator, then you can edit task notes but nothing else!-->
-          <td v-if="isUserCreator"><button @click="editTask" class="small-button">Edit Task</button></td>
+          <td v-if="isUserCreator"><button @click="editTask(task._id)" class="small-button">Edit Task</button></td>
           <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td>
         </tr>
       </tbody>

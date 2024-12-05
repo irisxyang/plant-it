@@ -71,8 +71,8 @@ export default class TaskingConcept {
    * Update the assignee for a task
    * @param _id _id of the task to update
    * @param assignee Optional param. New assignee for task. Defaults to null for unassigned tasks
-   * @returns
-   * TODO: double check null param
+   * @returns Success message
+   *
    */
   async updateAssignee(_id: ObjectId, assignee: string) {
     await this.tasks.partialUpdateOne({ _id }, { assignee: assignee });

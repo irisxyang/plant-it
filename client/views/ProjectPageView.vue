@@ -11,6 +11,7 @@ import { onBeforeMount, ref } from "vue";
 
 const { currentUsername } = useUserStore();
 const { currentProject } = storeToRefs(useProjectStore());
+const project = ref<Record<string, string>>();
 const projectName = ref("");
 const projectCreatorId = ref("");
 const projectCreator = ref("");

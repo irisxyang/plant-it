@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useProjectStore } from "@/stores/project";
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
@@ -11,6 +12,7 @@ import { onBeforeMount, ref } from "vue";
 // }
 
 const emit = defineEmits(["refreshProjects"]);
+const { updateCurrentProject } = useProjectStore();
 
 const loaded = ref(false);
 const props = defineProps(["project"]);
@@ -19,6 +21,11 @@ const projectName = ref(props.project.name);
 const projectCreator = ref("");
 
 const projectMembers = ref<Array<Record<string, string>>>([]);
+
+async function updateStoreProject() {
+  await updateCurrentProject(props.project._id);
+  console.log("updated project!", props.project._id);
+}
 
 const getProjectCreator = async (creatorId: string) => {
   //   let query: Record<string, string> = { id: creatorId };
@@ -61,7 +68,7 @@ onBeforeMount(async () => {
 
 <template>
   <div v-if="loaded" class="project-full-container default-border">
-    <p class="project-name">{{ projectName }}</p>
+    <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" class="project-name">{{ projectName }}</RouterLink>
     <p class="project-creator">Creator: {{ projectCreator }}</p>
     <p class="project-creator">Project Id: {{ props.project._id }}</p>
     <p>Members: {{ projectMembers }}</p>

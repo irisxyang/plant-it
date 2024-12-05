@@ -73,7 +73,7 @@ onBeforeMount(getProjects);
     </select>
     <label for="deadline">Deadline:</label>
     <input id="deadline" v-model="deadline" type="date" required />
-    <button type="submit" class="pure-button-primary pure-button">Create Task</button>
+    <button type="submit" class="main-button">Create Task</button>
   </form>
 </template>
 

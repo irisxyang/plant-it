@@ -36,6 +36,9 @@ onBeforeMount(async () => {
             <RouterLink :to="{ name: 'Home' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Home' }"> Home </RouterLink>
           </li>
           <li v-if="isLoggedIn">
+            <RouterLink :to="{ name: 'Projects' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Projects' }"> Projects </RouterLink>
+          </li>
+          <li v-if="isLoggedIn">
             <RouterLink :to="{ name: 'Settings' }" :class="{ 'nav-link': true, selected: currentRouteName == 'Settings' }"> Settings </RouterLink>
           </li>
           <li v-else>
@@ -78,7 +81,7 @@ footer {
 
 h1 {
   color: white;
-  font-size: 1.75em;
+  font-size: 1.8em;
   margin: 0;
 }
 

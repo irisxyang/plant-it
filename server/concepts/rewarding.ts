@@ -5,22 +5,16 @@ import { NotAllowedError, NotFoundError } from "./errors";
 export interface RewardDoc extends BaseDoc {
   name: string; // name of reward
   icon: string; // link/path to reward icon (randomly selected from a set of icon options)
-  user: string; // username it is associated with
+  user: ObjectId; // user it is associated with
   project: ObjectId; // project it is associated with
   task: ObjectId; // task it is associated with
 }
 
-// TODO: create icons and link paths
-const icons: Set<string> = new Set<string>(["TODO: links/paths to icons here"]);
+// TODO: create mapping of reward names to paths
+const icons: Map<string, string> = new Map<string, string>([["TODO: Reward name", "TODO: link/path to icon here"]]);
 
 /**
- * Rewarding concept
- *
- * TODO
- *
- * idea is we create rewards every time a task is completed
- * we can only have one reward per task (so we cannot have repeat rewards gifted
- * if a task is marked incomplete/complete)
+ * concept Rewarding [User, Project, Task]
  *
  * on the project page, we get rewards by project and display all of them
  *
@@ -41,11 +35,23 @@ export default class RewardingConcept {
     this.rewards = new DocCollection<RewardDoc>(collectionName);
   }
 
-  async createReward(name: string, icon: string, user: string, project: ObjectId, task: ObjectId) {
-    await this.assertUniqueNameForUser(name, user);
+  async createReward(user: ObjectId, project: ObjectId, task: ObjectId) {
+    // get a random icon name that user doesn't already have
+    const userRewards = new Set((await this.getRewardsByUser(user)).map((reward) => reward.name));
+    const newRewards = Array.from(icons.keys()).filter((iconName) => !userRewards.has(iconName));
+    if (newRewards.length === 0) {
+      throw new NotAllowedError(`You have already reached the maximum number of rewards (${userRewards.size})`);
+    }
     await this.assertTaskHasNoReward(task);
+    // select random name and icon
+    const name = newRewards[Math.floor(Math.random() * newRewards.length)];
+    const icon = icons.get(name);
     const _id = await this.rewards.createOne({ name, icon, user, project, task });
-    return { msg: `Reward successfully created`, reward: _id };
+    const reward = await this.rewards.readOne({ _id });
+    if (!reward) {
+      throw new NotFoundError(`Reward ${_id} could not be found after creation!`);
+    }
+    return { msg: `Reward successfully created`, reward };
   }
 
   /**
@@ -53,7 +59,7 @@ export default class RewardingConcept {
    * @param user Username of the user to check for
    * @returns A list of the rewards a user has
    */
-  async getRewardsByUser(user: string) {
+  async getRewardsByUser(user: ObjectId) {
     const rewards = await this.rewards.readMany({ user });
     return rewards;
   }
@@ -69,7 +75,7 @@ export default class RewardingConcept {
   }
 
   /**
-   * Get's the reward assigned to a certain task
+   * Get the reward assigned to a certain task
    * @param task The task to check for a reward
    * @returns The reward associated with the task
    * @throws NotFoundError if no reward is associated with that task
@@ -83,16 +89,13 @@ export default class RewardingConcept {
   }
 
   /**
-   * Check if a user already has a certain reward
-   * @param name The name of the reward to check for
-   * @param user The username of the user to check for
-   * @throws NotAllowedError if the user already has a reward with that name
+   * Delete a reward
+   * @param _id The id of the reward to delete
+   * @returns Success message
    */
-  private async assertUniqueNameForUser(name: string, user: string) {
-    const result = await this.rewards.readOne({ name: name, user: user });
-    if (result) {
-      throw new NotAllowedError(`User: ${user} already has reward ${name}`);
-    }
+  async deleteReward(_id: ObjectId) {
+    await this.rewards.deleteOne({ _id });
+    return { msg: "Reward deleted successfully!" };
   }
 
   /**

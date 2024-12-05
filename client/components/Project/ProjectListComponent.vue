@@ -26,12 +26,11 @@ onBeforeMount(async () => {
 
 <template>
   <section class="project-list" v-if="loaded && projects.length !== 0">
-    My Projects:
     <article v-for="project in projects" :key="project._id">
       <ProjectComponent @refreshProjects="getProjects" :project="project" />
     </article>
   </section>
-  <p v-else-if="loaded">No Projects.</p>
+  <p v-else-if="loaded">You are not currently a member of any projects.</p>
   <p v-else>Loading...</p>
 </template>
 

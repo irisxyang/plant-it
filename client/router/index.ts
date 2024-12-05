@@ -2,9 +2,12 @@ import { storeToRefs } from "pinia";
 import { createRouter, createWebHistory } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
+import CreateProjectView from "../views/CreateProjectView.vue";
 import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
+import ProjectPageView from "../views/ProjectPageView.vue";
+import ProjectsView from "../views/ProjectsView.vue";
 import SettingView from "../views/SettingView.vue";
 
 const router = createRouter({
@@ -19,6 +22,24 @@ const router = createRouter({
       path: "/setting",
       name: "Settings",
       component: SettingView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/projects",
+      name: "Projects",
+      component: ProjectsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/project",
+      name: "ProjectPage",
+      component: ProjectPageView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/create",
+      name: "CreateProject",
+      component: CreateProjectView,
       meta: { requiresAuth: true },
     },
     {

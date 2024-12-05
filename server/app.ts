@@ -6,6 +6,7 @@ import GroupItemConcept from "./concepts/grouping";
 import NotifyingConcept from "./concepts/notifying";
 import PostingConcept from "./concepts/posting";
 import ProjectConcept from "./concepts/projects";
+import RewardingConcept from "./concepts/rewarding";
 import SessioningConcept from "./concepts/sessioning";
 import TaskingConcept from "./concepts/tasking";
 
@@ -18,6 +19,7 @@ export const Friending = new FriendingConcept("friends");
 export const Depending = new DependingConcept("dependencies");
 export const Notifying = new NotifyingConcept("notifications");
 export const Deadlining = new DeadliningConcept("deadlines");
+export const Rewarding = new RewardingConcept("rewards");
 
 export const Project = new ProjectConcept("projects");
 export const ProjectMember = new GroupItemConcept("projectmembers");

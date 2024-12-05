@@ -1,13 +1,34 @@
 <script setup lang="ts">
-import AddUserForm from "@/components/Project/AddUserForm.vue";
 import CreateProjectForm from "@/components/Project/CreateProjectForm.vue";
 import ProjectListComponent from "@/components/Project/ProjectListComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
 import TaskListComponent from "@/components/Task/TaskListComponent.vue";
+import { useProjectStore } from "@/stores/project";
+import { useTaskStore } from "@/stores/task";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import { onBeforeMount } from "vue";
 
 const { isLoggedIn } = storeToRefs(useUserStore());
+
+const { resetProjectStore } = useProjectStore();
+const { resetTaskStore } = useTaskStore();
+
+// resets store to hold no task
+async function resetProject() {
+  await resetProjectStore();
+}
+
+// resets store to hold no project
+async function resetTask() {
+  await resetTaskStore();
+}
+
+onBeforeMount(async () => {
+  //TODO: should reset or not?
+  // await resetProject();
+  // await resetTask();
+});
 </script>
 
 <template>
@@ -26,7 +47,6 @@ const { isLoggedIn } = storeToRefs(useUserStore());
     </div>
     <div v-if="isLoggedIn">
       <CreateProjectForm />
-      <AddUserForm />
       <ProjectListComponent />
       <CreateTaskForm />
     </div>

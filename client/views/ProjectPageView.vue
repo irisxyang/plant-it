@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GardenComponent from "@/components/Garden/GardenComponent.vue";
 import AddUserForm from "@/components/Project/AddUserForm.vue";
 import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
@@ -80,7 +81,7 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1>{{ projectName }}</h1>
-    <div>project garden here!!!</div>
+    <GardenComponent :project="project" />
     <div>is user creator? {{ isUserCreator }}</div>
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
     <div>project garden here!!!</div>

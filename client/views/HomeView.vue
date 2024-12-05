@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GardenComponent from "@/components/Garden/GardenComponent.vue";
 import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
 import { useTaskStore } from "@/stores/task";
@@ -13,6 +14,7 @@ const { resetProjectStore } = useProjectStore();
 const { resetTaskStore } = useTaskStore();
 
 const rewards = ref<Array<Record<string, string>>>([]);
+const projects = ref<Array<Record<string, string>>>([]);
 
 // resets store to hold no task
 async function resetProject() {
@@ -24,19 +26,23 @@ async function resetTask() {
   await resetTaskStore();
 }
 
-async function getUserRewards() {
+async function getProjects() {
+  let projectResults;
+
   try {
-    rewards.value = await fetchy("api/rewards", "GET");
+    projectResults = await fetchy(`/api/user/projects`, "GET");
   } catch (_) {
     return;
   }
+
+  projects.value = projectResults;
 }
 
 onBeforeMount(async () => {
   //TODO: should reset or not?
   // await resetProject();
   // await resetTask();
-  await getUserRewards();
+  await getProjects();
 });
 </script>
 
@@ -48,16 +54,17 @@ onBeforeMount(async () => {
     </section>
     <div v-if="isLoggedIn" class="container">
       <div class="tasks">
-        <TaskListComponent projectId="" isCreator="" @refreshRewards="getUserRewards" />
+        <TaskListComponent projectId="" isCreator="" />
       </div>
       <div class="gardens">
         <h2>My Gardens</h2>
         <!-- TODO: separate into different projects, currently displaying all user rewards -->
-        <div class="project">
-          <div v-for="reward in rewards" :key="reward._id" class="reward">
+        <div v-for="project in projects" :key="project._id">
+          <GardenComponent :project="project" />
+          <!-- <div v-for="reward in rewards" :key="reward._id" class="reward">
             <h3>{{ reward.name }}</h3>
             <img :src="`/images/rewards/${reward.icon}`" :alt="reward.icon" />
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -96,13 +103,6 @@ h2 {
 
 .gardens h2 {
   text-align: center;
-}
-
-.project {
-  display: flex;
-  align-items: center;
-  margin: 0.5em;
-  height: 200px;
 }
 
 .reward {

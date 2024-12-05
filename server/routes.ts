@@ -280,16 +280,16 @@ class Routes {
   }
 
   /**
-   * update the user that the task is assigned to
-   * only manager of the project for that task can do this
-   * this should be called if a user is being added to a task
-   *
+   * Add a new assignee to a task. Only the creator of the task's project can update the task.
+   * @param session The user making the request
+   * @param id The task to add the assignee to
+   * @param assignee The new assignee for the task
    */
-  @Router.post("/project/task/assignees")
-  async addTaskAssignee(session: SessionDoc, task: string, assignee: string) {
+  @Router.post("/project/task/:id/assignees")
+  async addTaskAssignee(session: SessionDoc, id: string, assignee: string) {
+    console.log(assignee);
     const user = Sessioning.getUser(session);
-    const taskId = new ObjectId(task);
-
+    const taskId = new ObjectId(id);
     // get project id of the task to check if user is creator of project
     const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
@@ -301,15 +301,15 @@ class Routes {
     return await Task.updateAssignee(taskId, assignee);
   }
 
+  @Router.delete("/project/task/:id/assignees")
   /**
-   * unassign task
-   * only manager of the project for that task can do this
+   * Unassign a user from a task.
+   * @param session The user making the request
+   * @param id The task to unassign the user from
    */
-  @Router.delete("/project/task/assignees")
-  async unassignTask(session: SessionDoc, task: string) {
+  async unassignTask(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
-    const taskId = new ObjectId(task);
-
+    const taskId = new ObjectId(id);
     const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
@@ -321,7 +321,7 @@ class Routes {
   }
 
   /**
-   * Get rewards by user, project, or task
+   * Get rewards by user, project, or task.
    * @param session The session of the user
    * @param project The objectId of the project to check for
    * @param task The task to check for a reward

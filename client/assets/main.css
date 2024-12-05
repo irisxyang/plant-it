@@ -50,6 +50,7 @@ a {
 
 .small-button:hover {
   background-color: #8fbf83;
+  cursor: pointer;
 }
 
 button.btn-small {

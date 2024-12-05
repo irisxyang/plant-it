@@ -9,12 +9,11 @@ const loaded = ref(false);
 // set to a value if we are on the user home
 // (i.e. only fetch user tasks)
 // else we fetch the project's tasks
-const props = defineProps(["projectId", "isUserCreator"]);
+const props = defineProps(["projectId", "projectMembers", "isUserCreator"]);
 const emit = defineEmits(["refreshRewards"]);
-const tasks = ref<Array<Record<string, any>>>([]);
+const tasks = ref<Record<string, any>[]>([]);
 const lengthtasks = ref(0);
 const { updateCurrentTask } = useTaskStore();
-const isUserCreator = props.isUserCreator ? props.isUserCreator : false;
 
 const { currentUsername } = useUserStore();
 const { currentProject } = useProjectStore();
@@ -52,6 +51,24 @@ async function toggleTaskCompletion(task: Record<string, any>) {
 async function editTask(task: Record<string, any>) {
   await updateCurrentTask(task._id);
   // void router.push({ name: "EditTask" });
+}
+
+async function assignTask(taskId: string, member: string) {
+  try {
+    await fetchy(`api/project/task/${taskId}/assignees`, "POST", { body: { assignee: member } });
+    await getTasks();
+  } catch (_) {
+    return;
+  }
+}
+
+async function unassignTask(taskId: string) {
+  try {
+    await fetchy(`api/project/task/${taskId}/assignees`, "DELETE");
+    await getTasks();
+  } catch (_) {
+    return;
+  }
 }
 
 onBeforeMount(async () => {
@@ -109,9 +126,15 @@ onBeforeMount(async () => {
           <td class="center">{{ task.deadline }}</td>
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
-          <td class="center">{{ task.assignee }}</td>
-          <!-- TODO: IF NOT ASSIGNED + CREATOR, then add "add assignee" button -->
-          <td>{{ task.completion ? "Completed" : "Incomplete" }}</td>
+
+          <td v-if="isUserCreator && !task.completion">
+            <span v-if="task.assignee"><button @click="unassignTask(task._id)" class="small-button">-</button> {{ task.assignee }}</span>
+            <select v-else :value="task.assignee" @change="assignTask(task._id, ($event.target as HTMLSelectElement).selectedOptions[0].value)">
+              <option value="">Unassigned</option>
+              <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>
+            </select>
+          </td>
+          <td v-else>{{ task.assignee ? task.assignee : "Unassigned" }}</td>
           <!-- TODO: add edit task functionality -->
           <td>
             <ul>

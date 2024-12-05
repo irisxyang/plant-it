@@ -9,8 +9,7 @@ import { onBeforeMount, ref } from "vue";
 
 const { currentUsername } = useUserStore();
 const { currentProject } = useProjectStore();
-const projectName = ref("");
-const projectCreatorId = ref("");
+const project = ref<Record<string, string>>();
 const projectCreator = ref("");
 const loaded = ref(false);
 
@@ -27,8 +26,7 @@ const getProject = async () => {
   } catch {
     return;
   }
-  projectName.value = proj.name;
-  projectCreatorId.value = proj.creator;
+  project.value = proj;
 
   // get username for creator id
   let creator;
@@ -56,11 +54,11 @@ const getProjectMembers = async () => {
   projectMembers.value = members;
 };
 
-const getProjectCreator = async (creatorId: string) => {
+const getProjectCreator = async () => {
   //   let query: Record<string, string> = { id: creatorId };
   let creator;
   try {
-    creator = await fetchy(`/api/users/username/${creatorId}`, "GET");
+    creator = await fetchy(`/api/users/username/${project.value?.creator}`, "GET");
   } catch (_) {
     return "Project Creator Not Found";
   }
@@ -70,14 +68,14 @@ const getProjectCreator = async (creatorId: string) => {
 onBeforeMount(async () => {
   await getProject();
   //   console.log("this is the current project page for:", currentProject);
-  await getProjectCreator(projectCreatorId.value);
+  await getProjectCreator();
   await getProjectMembers();
   loaded.value = true;
 });
 </script>
 <template>
   <main>
-    <h1>{{ projectName }}</h1>
+    <h1>{{ project?.name }}</h1>
     <div>project garden here!!!</div>
     <div>is user creator? {{ isUserCreator }}</div>
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
@@ -88,7 +86,7 @@ onBeforeMount(async () => {
 
     <span class="project-body">
       <!-- <div>ProjectMembers: {{ projectMembers }}</div> -->
-      <div class="project-body-container"><TaskListComponent :project-id="currentProject" :is-user-creator="isUserCreator" /></div>
+      <div class="project-body-container"><TaskListComponent :project-id="currentProject" :projectMembers="projectMembers" :isUserCreator="isUserCreator" /></div>
       <div class="project-body-container">
         <AddUserForm v-if="isUserCreator" />
         <h2>Members</h2>

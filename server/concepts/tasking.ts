@@ -76,7 +76,7 @@ export default class TaskingConcept {
    */
   async updateAssignee(_id: ObjectId, assignee: string) {
     await this.tasks.partialUpdateOne({ _id }, { assignee });
-    return { msg: "Task assignee successfully updated!" };
+    return { msg: `Task assignee successfully updated to ${assignee}!` };
   }
 
   /**

@@ -1,38 +1,18 @@
 <script setup lang="ts">
 import { useProjectStore } from "@/stores/project";
-import { fetchy } from "@/utils/fetchy";
-import { onBeforeMount, ref } from "vue";
 
-const props = defineProps(["project"]);
-const rewards = ref<Array<Record<string, string>>>([]);
+const props = defineProps(["project", "rewards"]);
 
 const { updateCurrentProject } = useProjectStore();
 
 async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
 }
-
-async function getProjectRewards() {
-  const query: Record<string, string> = { project: props.project._id };
-  let fetchedRewards;
-
-  try {
-    fetchedRewards = await fetchy(`/api/rewards`, "GET", { query });
-  } catch (_) {
-    return;
-  }
-
-  rewards.value = fetchedRewards;
-}
-
-onBeforeMount(async () => {
-  await getProjectRewards();
-});
 </script>
 
 <template>
   <div>
-    <h3>{{ props.project.name }}</h3>
+    <h3>{{ props.project?.name }}</h3>
     <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" class="box">
       <div v-for="reward in rewards" :key="reward._id" class="reward">
         <!-- <h3>{{ reward.name }}</h3> -->

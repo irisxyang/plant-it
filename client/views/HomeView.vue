@@ -13,8 +13,10 @@ const { isLoggedIn } = storeToRefs(useUserStore());
 const { resetProjectStore } = useProjectStore();
 const { resetTaskStore } = useTaskStore();
 
-const rewards = ref<Array<Record<string, string>>>([]);
 const projects = ref<Array<Record<string, string>>>([]);
+const tasks = ref<Array<Record<string, string>>>([]);
+
+const projectRewards = ref<Array<Record<string, any>>>([]);
 
 // resets store to hold no task
 async function resetProject() {
@@ -27,7 +29,7 @@ async function resetTask() {
 }
 
 async function getProjects() {
-  let projectResults;
+  let projectResults: Array<Record<string, string>>;
 
   try {
     projectResults = await fetchy(`/api/user/projects`, "GET");
@@ -38,11 +40,34 @@ async function getProjects() {
   projects.value = projectResults;
 }
 
+async function getProjectRewards() {
+  projectRewards.value = await Promise.all(
+    projects.value.map((project: any) => {
+      const query: Record<string, string> = { project: project._id };
+      return fetchy(`/api/rewards`, "GET", { query });
+    }),
+  );
+}
+
+async function getTasks() {
+  let fetchedTasks;
+
+  try {
+    fetchedTasks = await fetchy("api/user/tasks", "GET");
+  } catch (_) {
+    return "User tasks not retrieved.";
+  }
+
+  tasks.value = fetchedTasks;
+}
+
 onBeforeMount(async () => {
   //TODO: should reset or not?
   // await resetProject();
   // await resetTask();
   await getProjects();
+  await getProjectRewards();
+  await getTasks();
 });
 </script>
 
@@ -54,13 +79,13 @@ onBeforeMount(async () => {
     </section>
     <div v-if="isLoggedIn" class="container">
       <div class="tasks">
-        <TaskListComponent projectId="" isCreator="" />
+        <TaskListComponent projectId="" isCreator="" :tasks="tasks" @refreshTasks="getTasks" @refreshRewards="getProjectRewards" />
       </div>
       <div class="gardens">
         <h2>My Gardens</h2>
         <!-- TODO: separate into different projects, currently displaying all user rewards -->
-        <div v-for="project in projects" :key="project._id">
-          <GardenComponent :project="project" />
+        <div v-for="(project, index) in projects" :key="project._id">
+          <GardenComponent :project="project" :rewards="projectRewards[index] || []" />
           <!-- <div v-for="reward in rewards" :key="reward._id" class="reward">
             <h3>{{ reward.name }}</h3>
             <img :src="`/images/rewards/${reward.icon}`" :alt="reward.icon" />

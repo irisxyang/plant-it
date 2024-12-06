@@ -34,13 +34,13 @@ export default class DeadliningConcept {
   }
 
   /**
-   * Get the deadline for a given item
+   * Get the deadline for a given item or false if no deadline exists
    * @param item ObjectId of the item to look up
-   * @returns The deadline for the item, or null if no deadline exists
+   * @returns The deadline for the item, or false if no deadline exists
    */
   async getItemDeadline(item: ObjectId) {
     const result = await this.deadlines.readOne({ item });
-    return result?.time;
+    return result?.time || false;
   }
 
   /**
@@ -83,12 +83,8 @@ export default class DeadliningConcept {
     if (Date.now() > newTime.getTime()) {
       throw new NotAllowedError(`Can't set a deadline in the past!`);
     }
-    //TODO: debug idk whats going wrong
 
-    const result = await this.deadlines.partialUpdateOne({ _id: item }, { time: newTime });
-    // if (!result.matchedCount) {
-    //   throw new NotFoundError(`Deadline: ${item} did not match any deadlines in the database`);
-    // }
-    return { msg: `Succesfully updated deadline` };
+    await this.deadlines.partialUpdateOne({ item }, { time: newTime }, { upsert: true });
+    return { msg: "Succesfully updated deadline" };
   }
 }

@@ -12,15 +12,15 @@ import { onBeforeMount, ref } from "vue";
 
 const { currentUsername } = useUserStore();
 const { currentProject } = storeToRefs(useProjectStore());
+
+const loaded = ref(false);
 const project = ref<Record<string, string>>();
 const projectName = ref("");
-const projectCreatorId = ref("");
 const projectCreator = ref("");
-const loaded = ref(false);
-
+const projectRewards = ref<Array<Record<string, string>>>([]);
 const isUserCreator = ref("");
-
 const projectMembers = ref<Array<Record<string, string>>>([]);
+const tasks = ref<Array<Record<string, string>>>([]);
 
 const getProject = async () => {
   const query: Record<string, string> = { id: currentProject.value };
@@ -70,21 +70,53 @@ const getProjectCreator = async () => {
   projectCreator.value = creator;
 };
 
+async function getTasks() {
+  if (!project.value?._id) {
+    return;
+  }
+
+  let fetchedTasks;
+  const query: Record<string, string> = { project: project.value._id };
+
+  try {
+    fetchedTasks = await fetchy("api/project/tasks", "GET", { query });
+  } catch (_) {
+    return "Project tasks not retrieved.";
+  }
+
+  tasks.value = fetchedTasks;
+}
+
+async function getProjectRewards() {
+  if (!project.value) {
+    return;
+  }
+  const query: Record<string, string> = { project: project.value._id };
+  let fetchedRewards;
+
+  try {
+    fetchedRewards = await fetchy(`/api/rewards`, "GET", { query });
+  } catch (_) {
+    return;
+  }
+
+  projectRewards.value = fetchedRewards;
+}
+
 onBeforeMount(async () => {
   await getProject();
-  //   console.log("this is the current project page for:", currentProject);
   await getProjectCreator();
   await getProjectMembers();
+  await getProjectRewards();
+  await getTasks();
   loaded.value = true;
 });
 </script>
 <template>
   <main>
     <h1>{{ projectName }}</h1>
-    <GardenComponent :project="project" />
-    <div>is user creator? {{ isUserCreator }}</div>
+    <GardenComponent :project="project" :rewards="projectRewards" />
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
-    <div>project garden here!!!</div>
 
     <!-- <span>
       <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Edit Project</RouterLink>
@@ -93,8 +125,8 @@ onBeforeMount(async () => {
 
     <span class="project-body">
       <div class="project-body-container">
-        <CreateTaskForm v-if="isUserCreator" />
-        <TaskListComponent :project-id="currentProject" :is-creator="isUserCreator" />
+        <CreateTaskForm v-if="isUserCreator" @refresh-tasks="getTasks" />
+        <TaskListComponent :project-id="currentProject" :is-creator="isUserCreator" :tasks="tasks" @refresh-tasks="getTasks" @refresh-rewards="getProjectRewards" />
       </div>
       <div class="project-body-container">
         <AddUserForm v-if="isUserCreator" />

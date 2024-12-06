@@ -3,7 +3,7 @@ import Responses from "./responses";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Sessioning, Task } from "./app";
+import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Rewarding, Sessioning, Task } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
 
 import { z } from "zod";
@@ -156,13 +156,24 @@ class Routes {
   }
 
   /**
+   * Get a task by its ObjectId
+   * @param id ObjectId of the task to get
+   * @returns The TaskDoc of the task
+   */
+  @Router.get("/tasks/:id")
+  async getTask(id: string) {
+    const taskId = new ObjectId(id);
+    return await Task.getTaskById(taskId);
+  }
+
+  /**
    * create task
    * only project manager can create tasks for that project
    * TODO: consider if we should limit task title length (ex: 100 characters)
    * TODO: decide if tasks must be assigned deadlines? currently required.
    * assignee is required arg, set to '' if unassigned
    */
-  @Router.post("/project/tasks")
+  @Router.post("/tasks")
   async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(project);
@@ -187,10 +198,33 @@ class Routes {
   }
 
   /**
+   * update task notes
+   * any member of project can update project's task notes
+   */
+  @Router.patch("/tasks/:id")
+  async updateTask(session: SessionDoc, id: string, title: string, notes: string, assignee: string, deadline: string) {
+    const user = Sessioning.getUser(session);
+    const taskId = new ObjectId(id);
+
+    const projectId = (await Task.getTaskById(taskId))?.project;
+    if (!projectId) {
+      throw new NotAllowedError("Task does not exist!");
+    }
+    await ProjectMember.assertItemInGroup(projectId, user);
+
+    // set user as new assignee
+    await Task.updateAssignee(taskId, assignee);
+
+    await Task.updateTitle(taskId, title);
+    await Task.updateNotes(taskId, notes);
+    return { msg: `Successfully updated task!` };
+  }
+
+  /**
    * delete task
    * only project manager can delete tasks for that project
    */
-  @Router.delete("/project/tasks/:id")
+  @Router.delete("/tasks/:id")
   async deleteTask(session: SessionDoc, task: string) {
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
@@ -207,13 +241,12 @@ class Routes {
   /**
    * Get the deadline for a task
    * @param id ObjectId of the task to get the deadline for
-   * @returns The deadline date for the task
+   * @returns The deadline date for the task, or false if no deadline exists
    */
   @Router.get("/project/task/:id/deadline")
   async getTaskDeadline(id: string) {
     const taskId = new ObjectId(id);
-    const deadline = await Deadlining.getItemDeadline(taskId);
-    return deadline;
+    return await Deadlining.getItemDeadline(taskId);
   }
 
   /**
@@ -238,9 +271,7 @@ class Routes {
    */
   @Router.get("/project/tasks")
   async getTasksForProject(session: SessionDoc, project: string) {
-    console.log("mhm" + project);
     const user = Sessioning.getUser(session);
-    console.log("2");
     const projectId = new ObjectId(project);
 
     await ProjectMember.assertItemInGroup(projectId, user);
@@ -324,28 +355,77 @@ class Routes {
     return await Task.updateAssignee(taskId, "");
   }
 
-  // TODO: add fn to set task to COMPLETE
-  // sync this with reward! if it is complete, then create new reward
+  /**
+   * Get rewards by user, project, or task.
+   * @param session The session of the user
+   * @param project The objectId of the project to check for
+   * @param task The task to check for a reward
+   * @returns A list of the rewards found
+   */
+  @Router.get("/rewards")
+  async getRewards(session: SessionDoc, project?: string, task?: string) {
+    const user = Sessioning.getUser(session);
+    return await Rewarding.getRewards({
+      user,
+      project: project ? new ObjectId(project) : undefined,
+      task: task ? new ObjectId(task) : undefined,
+    });
+  }
+
+  /**
+   * Gets all project rewards for all users of the project
+   * @param project The objectId of the project to check for
+   * @returns A list of the rewards found
+   */
+  @Router.get("/rewards/:project")
+  async getProjectRewards(project: string) {
+    // return { msg: "project rewards" };
+    return await Rewarding.getRewards({
+      project: new ObjectId(project),
+    });
+  }
+
   /**
    * Marks a task as completed
    * @param session The session of the user
    * @param id The id of the task to complete
    */
   @Router.post("/project/task/:id/complete")
-  async markTaskAsComplete(session: SessionDoc, id: string) {}
+  async markTaskAsComplete(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const username = (await Authing.getUserById(user)).username;
+    const taskId = new ObjectId(id);
+    const task = await Task.getTaskById(taskId);
+    if (task.assignee !== username) {
+      throw new NotAllowedError("You are not assigned to this task!");
+    }
+    const taskCompletion = await Task.updateCompletionStatus(taskId, true);
+    const rewardCreation = await Rewarding.createReward(user, task.project, taskId);
+    return { msg: `${taskCompletion.msg} ${rewardCreation.msg}`, reward: rewardCreation.reward };
+  }
 
-  // TODO: add fn to set task to INCOMPLETE
-  // should we consider taking away rewards if a task is reset to incomplete?
-  // the rewarding concept should be made in a way that it does not allow you to assign
-  // multiple rewards for the same task (so if you check then uncheck then check a task,
-  // it won't just keep rewarding you new rewards, it will just have you keep the first reward)
   /**
    * Marks a task as incomplete
    * @param session The session of the user
    * @param id The id of the task to mark as incomplete
    */
   @Router.post("/project/task/:id/incomplete")
-  async markTaskAsIncomplete(session: SessionDoc, id: string) {}
+  async markTaskAsIncomplete(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const username = (await Authing.getUserById(user)).username;
+    const taskId = new ObjectId(id);
+    const task = await Task.getTaskById(taskId);
+    if (task.assignee !== username) {
+      throw new NotAllowedError("You are not assigned to this task!");
+    }
+    const taskIncompletion = await Task.updateCompletionStatus(taskId, false);
+    const taskReward = (await Rewarding.getRewards({ task: taskId }))[0];
+    if (taskReward) {
+      const rewardDeletion = await Rewarding.deleteReward(taskReward._id);
+      return { msg: `${taskIncompletion.msg} ${rewardDeletion?.msg}` };
+    }
+    return taskIncompletion;
+  }
 
   /**
    * Checks if a task can be started
@@ -457,89 +537,6 @@ class Routes {
     Sessioning.end(session);
     return { msg: "Logged out!" };
   }
-
-  // @Router.get("/posts")
-  // @Router.validate(z.object({ author: z.string().optional() }))
-  // async getPosts(author?: string) {
-  //   let posts;
-  //   if (author) {
-  //     const id = (await Authing.getUserByUsername(author))._id;
-  //     posts = await Posting.getByAuthor(id);
-  //   } else {
-  //     posts = await Posting.getPosts();
-  //   }
-  //   return Responses.posts(posts);
-  // }
-
-  // @Router.post("/posts")
-  // async createPost(session: SessionDoc, content: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const created = await Posting.create(user, content, options);
-  //   return { msg: created.msg, post: await Responses.post(created.post) };
-  // }
-
-  // @Router.patch("/posts/:id")
-  // async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return await Posting.update(oid, content, options);
-  // }
-
-  // @Router.delete("/posts/:id")
-  // async deletePost(session: SessionDoc, id: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return Posting.delete(oid);
-  // }
-
-  // @Router.get("/friends")
-  // async getFriends(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Authing.idsToUsernames(await Friending.getFriends(user));
-  // }
-
-  // @Router.delete("/friends/:friend")
-  // async removeFriend(session: SessionDoc, friend: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const friendOid = (await Authing.getUserByUsername(friend))._id;
-  //   return await Friending.removeFriend(user, friendOid);
-  // }
-
-  // @Router.get("/friend/requests")
-  // async getRequests(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Responses.friendRequests(await Friending.getRequests(user));
-  // }
-
-  // @Router.post("/friend/requests/:to")
-  // async sendFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.sendRequest(user, toOid);
-  // }
-
-  // @Router.delete("/friend/requests/:to")
-  // async removeFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.removeRequest(user, toOid);
-  // }
-
-  // @Router.put("/friend/accept/:from")
-  // async acceptFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.acceptRequest(fromOid, user);
-  // }
-
-  // @Router.put("/friend/reject/:from")
-  // async rejectFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.rejectRequest(fromOid, user);
-  // }
 }
 
 /** The web app. */

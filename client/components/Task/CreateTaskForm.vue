@@ -4,6 +4,8 @@ import { storeToRefs } from "pinia";
 import { computed, onBeforeMount, ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
+const emit = defineEmits(["refreshTasks"]);
+
 const title = ref("");
 const notes = ref("");
 const { currentProject } = storeToRefs(useProjectStore());
@@ -17,12 +19,14 @@ const projectMembers = ref<string[]>([]);
 
 const createTask = async (title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) => {
   try {
-    await fetchy("/api/project/tasks", "POST", {
+    await fetchy("/api/tasks", "POST", {
       body: { title, notes, project, links, assignee, deadline },
     });
   } catch (_) {
     return;
   }
+
+  emit("refreshTasks");
 };
 
 const projectOptions = computed(() =>

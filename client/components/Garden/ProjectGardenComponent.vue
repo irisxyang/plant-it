@@ -13,7 +13,6 @@ const projects = ref<Array<Record<string, string>>>([]);
 const completedTasks = ref<Array<Record<string, string>>>([]);
 
 async function getProjectRewards() {
-  //   const query: Record<string, string> = { project: props.project._id };
   let fetchedRewards;
   const projectId = currentProject.value;
 

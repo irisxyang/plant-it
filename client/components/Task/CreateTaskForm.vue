@@ -51,7 +51,10 @@ const getProjectMembers = async (id: string) => {
   }
 };
 
-onBeforeMount(getProjects);
+onBeforeMount(async () => {
+  await getProjects();
+  await getProjectMembers(currentProject.value);
+});
 </script>
 
 <template>

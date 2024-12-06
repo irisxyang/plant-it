@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CreateProjectForm from "@/components/Project/CreateProjectForm.vue";
 import ProjectListComponent from "@/components/Project/ProjectListComponent.vue";
 import { fetchy } from "@/utils/fetchy";
 import { onBeforeMount, ref } from "vue";
@@ -27,7 +28,9 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1 class="main-page-heading">Your Projects</h1>
-    <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Start a New Project</RouterLink>
+    <!-- <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Start a New Project</RouterLink> -->
+    <CreateProjectForm />
+
     <ProjectListComponent />
   </main>
 </template>

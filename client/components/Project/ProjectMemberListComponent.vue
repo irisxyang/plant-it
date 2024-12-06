@@ -7,13 +7,13 @@ import { onBeforeMount, ref } from "vue";
 
 const props = defineProps(["isUserCreator"]);
 const loaded = ref(false);
-const { currentProject } = useProjectStore();
+const { currentProject } = storeToRefs(useProjectStore());
 let projectMembers = ref<Array<Record<string, string>>>([]);
 const { currentUsername } = storeToRefs(useUserStore());
 
 const getProjectMembers = async () => {
   // get project members here
-  const query: Record<string, string> = { id: currentProject };
+  const query: Record<string, string> = { id: currentProject.value };
   let members;
   try {
     members = await fetchy("/api/project/members", "GET", { query });

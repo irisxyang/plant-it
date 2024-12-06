@@ -5,10 +5,9 @@ import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
 const name = ref("");
-// const emit = defineEmits(["refreshProjects"]);
 const { updateCurrentProject } = useProjectStore();
 
-const createProject = async (name: string) => {
+const editProject = async (name: string) => {
   let project;
   try {
     project = await fetchy("/api/projects", "POST", {
@@ -28,8 +27,8 @@ const createProject = async (name: string) => {
 </script>
 
 <template>
-  <form class="create-project-form" @submit.prevent="createProject(name)">
-    <h2>Start a New Project!</h2>
+  <form class="create-project-form default-border" @submit.prevent="editProject(name)">
+    <label for="content">Create a new project!</label>
     <input id="content" v-model="name" type="text" placeholder="Add a project name!" required />
     <button type="submit" class="main-button">Create Project</button>
   </form>
@@ -41,10 +40,7 @@ const createProject = async (name: string) => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 0;
-  padding-bottom: 2em;
-  margin: 0;
-  width: 400px;
+  margin: 0.5em;
 }
 
 form {

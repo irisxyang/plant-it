@@ -3,7 +3,7 @@ import Responses from "./responses";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Rewarding, Sessioning, Task } from "./app";
+import { Authing, Deadlining, Depending, Notifying, Project, ProjectMember, Sessioning, Task } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
 
 import { z } from "zod";
@@ -113,7 +113,7 @@ class Routes {
   }
 
   /**
-   * add a member to a project
+   * add a new member to a project
    * only creator of project can add a member to the project
    */
   @Router.post("/project/members")
@@ -123,6 +123,7 @@ class Routes {
     const newMember = new ObjectId(member);
 
     await Project.assertUserIsCreator(projectId, user);
+    await ProjectMember.assertItemNotInGroup(projectId, newMember);
     return await ProjectMember.addGroupItem(projectId, newMember);
   }
 
@@ -149,7 +150,7 @@ class Routes {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(id);
 
-    // await ProjectMember.assertItemInGroup(projectId, user);
+    await ProjectMember.assertItemInGroup(projectId, user);
     const memberIds = await ProjectMember.getItemsInGroup(projectId);
     return await Authing.idsToUsernames(memberIds);
   }
@@ -232,12 +233,14 @@ class Routes {
   // just some ideas for functionality
 
   /**
-   * get all tasks for a project
+   * get all tasks for a project from string of the projectId
    * only project members are able to see the tasks for a project
    */
   @Router.get("/project/tasks")
   async getTasksForProject(session: SessionDoc, project: string) {
+    console.log("mhm" + project);
     const user = Sessioning.getUser(session);
+    console.log("2");
     const projectId = new ObjectId(project);
 
     await ProjectMember.assertItemInGroup(projectId, user);
@@ -320,47 +323,28 @@ class Routes {
     return await Task.updateAssignee(taskId, "");
   }
 
+  // TODO: add fn to set task to COMPLETE
+  // sync this with reward! if it is complete, then create new reward
   /**
    * Marks a task as completed
    * @param session The session of the user
    * @param id The id of the task to complete
    */
   @Router.post("/project/task/:id/complete")
-  async markTaskAsComplete(session: SessionDoc, id: string) {
-    const user = Sessioning.getUser(session);
-    const username = (await Authing.getUserById(user)).username;
-    const taskId = new ObjectId(id);
-    const task = await Task.getTaskById(taskId);
-    if (task.assignee !== username) {
-      throw new NotAllowedError("You are not assigned to this task!");
-    }
-    const taskCompletion = await Task.updateCompletionStatus(taskId, true);
-    const rewardCreation = await Rewarding.createReward(user, task.project, taskId);
-    return { msg: `${taskCompletion.msg} ${rewardCreation.msg}`, reward: rewardCreation.reward };
-  }
+  async markTaskAsComplete(session: SessionDoc, id: string) {}
 
+  // TODO: add fn to set task to INCOMPLETE
+  // should we consider taking away rewards if a task is reset to incomplete?
+  // the rewarding concept should be made in a way that it does not allow you to assign
+  // multiple rewards for the same task (so if you check then uncheck then check a task,
+  // it won't just keep rewarding you new rewards, it will just have you keep the first reward)
   /**
    * Marks a task as incomplete
    * @param session The session of the user
    * @param id The id of the task to mark as incomplete
    */
   @Router.post("/project/task/:id/incomplete")
-  async markTaskAsIncomplete(session: SessionDoc, id: string) {
-    const user = Sessioning.getUser(session);
-    const username = (await Authing.getUserById(user)).username;
-    const taskId = new ObjectId(id);
-    const task = await Task.getTaskById(taskId);
-    if (task.assignee !== username) {
-      throw new NotAllowedError("You are not assigned to this task!");
-    }
-    const taskIncompletion = await Task.updateCompletionStatus(taskId, false);
-    const taskReward = await Rewarding.getRewardByTask(taskId);
-    if (taskReward) {
-      const rewardDeletion = await Rewarding.deleteReward(taskReward._id);
-      return { msg: `${taskIncompletion.msg} ${rewardDeletion.msg}` };
-    }
-    return taskIncompletion;
-  }
+  async markTaskAsIncomplete(session: SessionDoc, id: string) {}
 
   /**
    * Checks if a task can be started

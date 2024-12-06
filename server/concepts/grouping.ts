@@ -97,11 +97,24 @@ export default class GroupItemConcept {
    *
    * @param group ObjectId of the group you're checking to see if the item is in
    * @param item: The item you're checking if is in group
+   * @throws NotFoundError is item is not in the group
    */
   async assertItemInGroup(group: ObjectId, item: ObjectId) {
     const pair = await this.groupitems.readOne({ group, item });
     if (!pair) {
       throw new NotFoundError(`Item ${item} not in group ${group}!`);
+    }
+  }
+  /**
+   *
+   * @param group ObjectId of the group you're checking to see if the item is in
+   * @param item: The item you're checking if is in group
+   * @throws NotFoundError is item is not in the group
+   */
+  async assertItemNotInGroup(group: ObjectId, item: ObjectId) {
+    const pair = await this.groupitems.readOne({ group, item });
+    if (pair) {
+      throw new NotFoundError(`Item ${item} is already in group ${group}!`);
     }
   }
 }

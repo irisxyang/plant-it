@@ -4,6 +4,7 @@ import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
+import ProjectProgressComponent from "./ProjectProgressComponent.vue";
 
 // const { updateCurrentlyViewingProject } = useProjectStore();
 
@@ -24,7 +25,6 @@ const projectMembers = ref<Array<Record<string, string>>>([]);
 
 async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
-  console.log("updated project!", props.project._id);
 }
 
 const getProjectCreator = async (creatorId: string) => {
@@ -67,32 +67,38 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <div v-if="loaded" class="project-full-container default-border">
-    <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" class="project-name">{{ projectName }}</RouterLink>
-    <p class="project-creator">Creator: {{ projectCreator }}</p>
-    <p class="project-creator">Project Id: {{ props.project._id }}</p>
-    <p>Members: {{ projectMembers }}</p>
-    <div class="project-buttons" v-if="projectCreator == currentUsername">
-      <button class="main-button" @click="deleteProject">Delete Project</button>
+  <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" v-if="loaded" class="project-full-container default-border">
+    <div>
+      <div class="project-name">{{ projectName }}</div>
+      <p class="project-creator">Creator: {{ projectCreator }}</p>
     </div>
-  </div>
+    <div class="project-buttons" v-if="projectCreator == currentUsername">
+      <button class="small-button" @click="deleteProject">Delete Project</button>
+    </div>
+    <div>
+      <ProjectProgressComponent :project="project" />
+    </div>
+  </RouterLink>
 </template>
 
 <style scoped>
 .project-full-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 1em;
   margin: 0.5em;
+  width: 400px;
 }
 
 .project-name {
   font-size: 1.5em;
+  margin: 0;
 }
 
 .project-creator {
   font-size: 1em;
+  margin: 0;
 }
 </style>

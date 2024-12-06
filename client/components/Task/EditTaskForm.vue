@@ -35,7 +35,6 @@ const getTaskInfo = async () => {
   links.value = fetchedTask.links;
   deadline.value = fetchedTask.deadline;
   assignee.value = fetchedTask.assignee;
-  console.log("get task info: task:", fetchedTask._id, " title: ", title.value, " notes: ", notes.value, " assignee: ", assignee.value);
 };
 
 const getProjectMembers = async (id: string) => {
@@ -49,7 +48,6 @@ const getProjectMembers = async (id: string) => {
 };
 
 const editTask = async (title: string, notes: string, assignee: string, deadline: string) => {
-  console.log("edit task called");
   // TODO: figure out edit task :(
   // i created a new router path (ctrl-F for updateTask) that includes basically everything but:
 
@@ -60,9 +58,7 @@ const editTask = async (title: string, notes: string, assignee: string, deadline
   const deadlineQuery: Record<string, string> = { date: deadline };
   try {
     //TODO: figure out whats wrong with the deadline please
-    console.log("trying to update deadline?");
     await fetchy(`/api/project/task/${currentTask.value}/deadline`, "PATCH", { body: deadlineQuery });
-    console.log("updated deadline");
   } catch {
     return;
   }

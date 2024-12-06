@@ -60,6 +60,7 @@ onBeforeMount(async () => {
         <h2>My Gardens</h2>
         <!-- TODO: separate into different projects, currently displaying all user rewards -->
         <div v-for="project in projects" :key="project._id">
+          <h3>{{ project.name }}</h3>
           <GardenComponent :project="project" />
           <!-- <div v-for="reward in rewards" :key="reward._id" class="reward">
             <h3>{{ reward.name }}</h3>
@@ -78,6 +79,11 @@ h1 {
 
 h2 {
   text-align: center;
+}
+
+h3 {
+  padding: 0;
+  margin-bottom: 0.2em;
 }
 
 .container {

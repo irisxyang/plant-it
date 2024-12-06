@@ -322,7 +322,6 @@ class Routes {
    */
   @Router.post("/project/task/:id/assignees")
   async addTaskAssignee(session: SessionDoc, id: string, assignee: string) {
-    console.log(assignee);
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(id);
     // get project id of the task to check if user is creator of project
@@ -369,6 +368,19 @@ class Routes {
       user,
       project: project ? new ObjectId(project) : undefined,
       task: task ? new ObjectId(task) : undefined,
+    });
+  }
+
+  /**
+   * Gets all project rewards for all users of the project
+   * @param project The objectId of the project to check for
+   * @returns A list of the rewards found
+   */
+  @Router.get("/rewards/:project")
+  async getProjectRewards(project: string) {
+    // return { msg: "project rewards" };
+    return await Rewarding.getRewards({
+      project: new ObjectId(project),
     });
   }
 

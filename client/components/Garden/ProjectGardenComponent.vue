@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// TODO: get all projects for user
+// TODO: get all projects for user. Ben - completed this. Didn't fully understand goal
 // for each user project, get completed tasks for that user
 import { useProjectStore } from "@/stores/project";
 import { fetchy } from "@/utils/fetchy";
@@ -9,6 +9,7 @@ import { onBeforeMount, ref } from "vue";
 // const props = defineProps(["project"]);
 const { currentProject } = storeToRefs(useProjectStore());
 const rewards = ref<Array<Record<string, string>>>([]);
+const projects = ref<Array<Record<string, string>>>([]);
 
 async function getProjectRewards() {
   //   const query: Record<string, string> = { project: props.project._id };
@@ -23,8 +24,19 @@ async function getProjectRewards() {
   rewards.value = fetchedRewards;
 }
 
+async function getProjects() {
+  let fetchedProjects;
+  try {
+    fetchedProjects = await fetchy(`/api/user/projects`, "GET");
+  } catch (_) {
+    return;
+  }
+  projects.value = fetchedProjects;
+}
+
 onBeforeMount(async () => {
   await getProjectRewards();
+  await getProjects();
 });
 </script>
 <template>

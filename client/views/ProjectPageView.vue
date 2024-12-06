@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GardenComponent from "@/components/Garden/GardenComponent.vue";
+import ProjectGardenComponent from "@/components/Garden/ProjectGardenComponent.vue";
 import AddUserForm from "@/components/Project/AddUserForm.vue";
 import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
@@ -81,15 +81,9 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1>{{ projectName }}</h1>
-    <GardenComponent :project="project" />
-    <div>is user creator? {{ isUserCreator }}</div>
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
-    <div>project garden here!!!</div>
-
-    <!-- <span>
-      <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Edit Project</RouterLink>
-      <RouterLink :to="{ name: 'CreateProject' }" type="submit" class="main-button">Add Member</RouterLink>
-    </span> -->
+    <h2>Project Garden</h2>
+    <ProjectGardenComponent />
 
     <span class="project-body">
       <div class="project-body-container">
@@ -129,6 +123,7 @@ main {
 .project-creator {
   font-size: 1.25em;
   font-weight: 700;
+  margin-bottom: 1em;
 }
 
 .project-body {

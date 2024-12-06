@@ -12,7 +12,7 @@ async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
 }
 
-async function getProjectRewards() {
+async function getUserProjectRewards() {
   const query: Record<string, string> = { project: props.project._id };
   let fetchedRewards;
 
@@ -26,13 +26,12 @@ async function getProjectRewards() {
 }
 
 onBeforeMount(async () => {
-  await getProjectRewards();
+  await getUserProjectRewards();
 });
 </script>
 
 <template>
   <div>
-    <h3>{{ props.project.name }}</h3>
     <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" class="box">
       <div v-for="reward in rewards" :key="reward._id" class="reward">
         <!-- <h3>{{ reward.name }}</h3> -->

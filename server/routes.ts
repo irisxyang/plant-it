@@ -288,8 +288,17 @@ class Routes {
    * this should be called if a user is being added to a task
    *
    */
+<<<<<<< HEAD
   @Router.post("/project/task/assignees")
   async addTaskAssignee(session: SessionDoc, task: string, assignee: string) {
+||||||| 6b69a1f
+  @Router.post("/project/task/:id/assignees")
+  async addTaskAssignee(session: SessionDoc, id: string, assignee: string) {
+    console.log(assignee);
+=======
+  @Router.post("/project/task/:id/assignees")
+  async addTaskAssignee(session: SessionDoc, id: string, assignee: string) {
+>>>>>>> bd2307692015f126cb324607457fbd77b39f4cfa
     const user = Sessioning.getUser(session);
     const taskId = new ObjectId(task);
 
@@ -325,6 +334,19 @@ class Routes {
 
   // TODO: add fn to set task to COMPLETE
   // sync this with reward! if it is complete, then create new reward
+  /**
+   * Gets all project rewards for all users of the project
+   * @param project The objectId of the project to check for
+   * @returns A list of the rewards found
+   */
+  @Router.get("/rewards/:project")
+  async getProjectRewards(project: string) {
+    // return { msg: "project rewards" };
+    return await Rewarding.getRewards({
+      project: new ObjectId(project),
+    });
+  }
+
   /**
    * Marks a task as completed
    * @param session The session of the user

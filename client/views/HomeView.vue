@@ -65,6 +65,8 @@ onBeforeMount(async () => {
   //TODO: should reset or not?
   // await resetProject();
   // await resetTask();
+  if (!isLoggedIn.value) return;
+
   await getProjects();
   await getProjectRewards();
   await getTasks();

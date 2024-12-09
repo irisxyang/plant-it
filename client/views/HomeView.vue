@@ -6,7 +6,7 @@ import { useTaskStore } from "@/stores/task";
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
-import { onBeforeMount, ref } from "vue";
+import { onBeforeMount, ref, watch } from "vue";
 
 const { isLoggedIn } = storeToRefs(useUserStore());
 
@@ -61,15 +61,24 @@ async function getTasks() {
   tasks.value = fetchedTasks;
 }
 
+async function getData() {
+  await getProjects();
+  await getProjectRewards();
+}
+
 onBeforeMount(async () => {
   //TODO: should reset or not?
   // await resetProject();
   // await resetTask();
-  if (!isLoggedIn.value) return;
+  if (isLoggedIn.value) {
+    await getData();
+  }
+});
 
-  await getProjects();
-  await getProjectRewards();
-  await getTasks();
+watch(isLoggedIn, async (newVal) => {
+  if (newVal) {
+    await getData();
+  }
 });
 </script>
 

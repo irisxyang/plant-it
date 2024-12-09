@@ -20,12 +20,12 @@ async function register() {
     <h3>Register User</h3>
     <fieldset>
       <div class="pure-control-group">
-        <label for="aligned-name">Username</label>
-        <input v-model.trim="username" type="text" id="aligned-name" placeholder="Username" required />
+        <label for="register-name">Username</label>
+        <input v-model.trim="username" type="text" id="register-name" placeholder="Username" required />
       </div>
       <div class="pure-control-group">
-        <label for="aligned-password">Password</label>
-        <input type="password" v-model.trim="password" id="aligned-password" placeholder="Password" required />
+        <label for="register-password">Password</label>
+        <input type="password" v-model.trim="password" id="register-password" placeholder="Password" required />
       </div>
       <div class="pure-controls">
         <button type="submit" class="main-button">Register</button>

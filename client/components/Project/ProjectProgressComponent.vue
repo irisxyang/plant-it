@@ -12,7 +12,7 @@ async function getTasks() {
   try {
     // const projectId = await fetchy(`api/projects`, `GET`, { query: { name: props.project } });
     tasks.value = await fetchy(`api/project/tasks`, "GET", { query: { project: props.project._id } });
-    progress.value = (tasks.value.filter((task) => task.completion).length / tasks.value.length) * 100;
+    progress.value = Math.trunc((tasks.value.filter((task) => task.completion).length / tasks.value.length) * 100);
   } catch (_) {
     return;
   }

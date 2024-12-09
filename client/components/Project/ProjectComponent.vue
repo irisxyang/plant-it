@@ -72,11 +72,11 @@ onBeforeMount(async () => {
       <div class="project-name">{{ projectName }}</div>
       <p class="project-creator">Creator: {{ projectCreator }}</p>
     </div>
-    <div class="project-buttons" v-if="projectCreator == currentUsername">
-      <button class="small-button" @click="deleteProject">Delete Project</button>
-    </div>
-    <div>
+    <div class="row">
       <ProjectProgressComponent :project="project" />
+      <div class="project-buttons" v-if="projectCreator == currentUsername">
+        <button class="small-button" @click="deleteProject">Delete Project</button>
+      </div>
     </div>
   </RouterLink>
 </template>
@@ -100,5 +100,12 @@ onBeforeMount(async () => {
 .project-creator {
   font-size: 1em;
   margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
 }
 </style>

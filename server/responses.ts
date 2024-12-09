@@ -8,11 +8,23 @@ export default class Responses {
   /**
    * Convert TaskDocs into a more readable format by including the deadline and project name.
    */
-  static async tasks(task: TaskDoc[]) {
-    const projects = await Promise.all(task.map((t) => Project.getProjectById(t.project)));
-    const deadlines = await Promise.all(task.map((t) => Deadlining.getItemDeadline(t._id)));
-    const deadlineStrings = deadlines.map((d) => (d ? d.toLocaleString("default", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }) : null));
-    return task.map((t, i) => ({ ...t, projectName: projects[i].name, deadline: deadlineStrings[i] }));
+  static async tasks(tasks: TaskDoc[]) {
+    const projects = await Promise.all(tasks.map((t) => Project.getProjectById(t.project)));
+    const deadlines = await Promise.all(tasks.map((t) => Deadlining.getItemDeadline(t._id)));
+    const deadlineStrings = deadlines.map((d) => (d ? d.toLocaleString("default", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }) : ""));
+    const tasksWithProjectAndDeadline = tasks.map((t, i) => ({ ...t, projectName: projects[i].name, deadlineString: deadlineStrings[i], deadline: deadlines[i] }));
+    return tasksWithProjectAndDeadline.sort((a, b) => {
+      if (a.deadline === false && b.deadline === false) {
+        return 0;
+      }
+      if (a.deadline === false) {
+        return 1;
+      }
+      if (b.deadline === false) {
+        return -1;
+      }
+      return a.deadline < b.deadline ? -1 : 1;
+    });
   }
 }
 

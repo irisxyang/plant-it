@@ -51,7 +51,7 @@ onBeforeMount(async () => {
           <td class="center">
             <input type="checkbox" :checked="task.completion" @click="toggleTaskCompletion(task)" />
           </td>
-          <td class="center">{{ task.deadline }}</td>
+          <td class="center">{{ task.deadlineString }}</td>
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
           <td>{{ task.projectName }}</td>
@@ -79,7 +79,7 @@ onBeforeMount(async () => {
           <td class="center">
             <input type="checkbox" :checked="task.completion" @click="toggleTaskCompletion(task)" />
           </td>
-          <td class="center">{{ task.deadline }}</td>
+          <td class="center">{{ task.deadlineString }}</td>
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
           <td>{{ task.assignee ? task.assignee : "Unassigned" }}</td>

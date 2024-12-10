@@ -35,6 +35,7 @@ h3 {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  margin: 0.5em;
   margin-bottom: 1em;
 }
 

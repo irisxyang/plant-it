@@ -85,8 +85,27 @@ watch(isLoggedIn, async (newVal) => {
 <template>
   <main>
     <h1 class="main-page-heading">Home</h1>
-    <section>
-      <h2 v-if="!isLoggedIn">Please login to start!</h2>
+    <section v-if="!isLoggedIn">
+      <div style="margin: 3em"></div>
+      <h2>Welcome to PlantIt: Project Management to Help You Flourish!</h2>
+      <div class="description">
+        PlantIt is for hobbyists or anyone that might want a hub to manage their personal projects.
+        <br />
+        Plan your next endeavor by starting a project: add members, assign tasks, and get rewarded with a little plant!
+        <br />
+        <span style="margin-top: 1em">
+          <img :src="`/images/rewards/reward1.svg`" />
+          <img :src="`/images/rewards/reward6.svg`" />
+          <img :src="`/images/rewards/reward7.svg`" />
+          <img :src="`/images/rewards/reward4.svg`" />
+          <img :src="`/images/rewards/reward5.svg`" />
+          <img :src="`/images/rewards/reward3.svg`" />
+          <img :src="`/images/rewards/reward2.svg`" />
+        </span>
+        <br />
+        <RouterLink class="main-button" :to="{ name: 'Settings' }">Log In or Register to Start!</RouterLink>
+      </div>
+      <div style="margin: 15em"></div>
     </section>
     <div v-if="isLoggedIn" class="container">
       <div class="tasks">
@@ -94,6 +113,14 @@ watch(isLoggedIn, async (newVal) => {
       </div>
       <div class="gardens">
         <h2>My Gardens</h2>
+        <div class="description">
+          Each task that you complete rewards you with a flower!
+          <br />
+          Below are all of your rewards for all of the projects you are a part of.
+          <br />
+          <br />
+          Click a garden to navigate to the project page.
+        </div>
         <!-- TODO: separate into different projects, currently displaying all user rewards -->
         <div v-for="(project, index) in projects" :key="project._id">
           <GardenComponent :project="project" :rewards="projectRewards[index] || []" />
@@ -114,6 +141,23 @@ h1 {
 
 h2 {
   text-align: center;
+}
+
+.description {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  margin: 0 1em;
+  margin-top: 0;
+  padding-top: 0;
+  font-size: 1.2em;
+}
+
+img {
+  width: 60px;
+  height: 60px;
 }
 
 .container {

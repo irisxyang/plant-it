@@ -60,7 +60,7 @@ h3 {
   flex-direction: row;
   flex-wrap: wrap;
   margin-bottom: 1em;
-  width: 60%;
+  width: 40%;
 }
 
 .reward img {

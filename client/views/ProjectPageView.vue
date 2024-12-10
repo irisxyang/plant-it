@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GardenComponent from "@/components/Garden/GardenComponent.vue";
+import ProjectGardenComponent from "@/components/Garden/ProjectGardenComponent.vue";
 import AddUserForm from "@/components/Project/AddUserForm.vue";
 import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
@@ -115,7 +115,7 @@ onBeforeMount(async () => {
 <template>
   <main>
     <h1>{{ projectName }}</h1>
-    <GardenComponent :project="project" :rewards="projectRewards" />
+    <ProjectGardenComponent :project="project" :rewards="projectRewards" />
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
 
     <!-- <span>

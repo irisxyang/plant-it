@@ -19,8 +19,9 @@ const links = ref<string[]>([]);
 
 const createTask = async () => {
   try {
+    const filteredLinks = links.value.filter((link) => link !== "");
     await fetchy("/api/tasks", "POST", {
-      body: { title: title.value, notes: notes.value, project: currentProject.value, links: links.value, assignee: assignee.value, deadline: deadline.value },
+      body: { title: title.value, notes: notes.value, project: currentProject.value, links: filteredLinks, assignee: assignee.value, deadline: deadline.value },
     });
   } catch (_) {
     return;
@@ -33,62 +34,71 @@ const createTask = async () => {
   deadline.value = "";
   links.value = [];
 };
+
+const addLink = () => {
+  links.value.push("");
+};
+
+const removeLink = (index: number) => {
+  links.value.splice(index, 1);
+};
 </script>
 
 <template>
   <form class="create-task-form default-border" @submit.prevent="createTask()">
     <h2>Add a New Task:</h2>
-    <span class="inputs">
-      <div class="input-col">
-        <span class="input-item">
+    <div class="input-item-container">
+      <div class="input-item-column">
+        <div class="input-item">
           <label for="Title:">Title:</label>
-          <input id="Title:" v-model="title" type="text" placeholder="Add a task title!" required
-        /></span>
-        <span class="input-item">
+          <input id="Title:" v-model="title" type="text" placeholder="Add a task title!" required />
+        </div>
+        <div class="input-item">
           <label for="deadline">Deadline:</label>
           <input id="deadline" v-model="deadline" type="date" required />
-        </span>
-      </div>
-      <div class="input-col">
-        <span class="input-item">
-          <label for="Notes:">Notes:</label>
-          <input id="Notes:" v-model="notes" type="text" placeholder="Add any extra notes!" required />
-        </span>
-        <span class="input-item">
+        </div>
+        <div class="input-item">
           <label for="Assign to:">Assignee:</label>
-          <select style="margin-left: 0.5em" id="Assign to:" v-model="assignee" required>
+          <select id="Assign to:" v-model="assignee" required>
             <option value="" disabled selected>Select a user to assign to</option>
             <option v-for="member in props.members" :key="member" :value="member">{{ member }}</option>
           </select>
-        </span>
+        </div>
       </div>
-    </span>
+      <div class="input-item-column">
+        <div class="input-item">
+          <label for="Links:">Links:</label>
+          <div class="link-container">
+            <div v-for="(link, index) in links" :key="index" class="link-input">
+              <input v-model="links[index]" type="text" placeholder="Add a link!" />
+              <button type="button" class="small-button" @click="removeLink(index)">-</button>
+            </div>
+            <button type="button" class="small-button add-button" @click="addLink()">+</button>
+          </div>
+        </div>
+        <div class="input-item">
+          <label for="Notes:">Notes:</label>
+          <textarea id="Notes:" v-model="notes" placeholder="Add any extra notes!" required />
+        </div>
+      </div>
+    </div>
     <button type="submit" class="main-button" style="margin-top: 0">Create Task</button>
   </form>
 </template>
 
 <style scoped>
-.create-task-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: 0.5em;
-  width: 90%;
-}
-
-h2 {
-  margin: 0;
-  margin-top: 0.25em;
-  padding-bottom: 0;
-}
-
 form {
   background-color: var(--base-bg);
   display: flex;
   flex-direction: column;
   gap: 0.5em;
   padding: 1em;
+  width: 100%;
+  align-items: center;
+}
+
+h2 {
+  margin: 0.25em 0 0 0;
 }
 
 textarea {
@@ -100,29 +110,44 @@ textarea {
   resize: none;
 }
 
-input {
-  margin: 0.5em;
-}
-
-.input-col {
-  display: flex;
-  flex-direction: column;
-  padding: 1em;
-  padding-top: 0.1;
-  padding-bottom: 0.1;
-}
-
-.inputs {
+.input-item-container {
   display: flex;
   flex-direction: row;
-  padding-bottom: 0;
-  margin-bottom: 0;
+  gap: 2em;
 }
 
-.input-item {
+.input-item-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.input-item > label {
+  align-self: center;
+}
+
+.input-item > input,
+.input-item > select,
+.input-item > textarea {
+  width: 100%;
+}
+
+.link-input {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 0.5em;
+}
+
+.link-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.add-button {
+  margin: 0 auto;
+  width: 80%;
 }
 </style>

@@ -69,8 +69,7 @@ onBeforeMount(async () => {
           <th style="width: 20%">Task</th>
           <th style="width: 35%">Notes</th>
           <th style="width: 5%">Assigned To</th>
-          <th style="width: 10%">Status</th>
-          <!-- <th style="width: 15%">Link(s)</th> -->
+          <th style="width: 15%">Link(s)</th>
           <th v-if="isCreator" style="width: 10%">Edit?</th>
         </tr>
       </thead>
@@ -83,15 +82,15 @@ onBeforeMount(async () => {
           <td>{{ task.title }}</td>
           <td>{{ task.notes }}</td>
           <td>{{ task.assignee ? task.assignee : "Unassigned" }}</td>
-          <!-- TODO: add edit task functionality -->
           <td>
             <ul>
-              <li v-for="link in task.links" :key="link">{{ link }}</li>
+              <li v-for="link in task.links" :key="link">
+                <a :href="link" target="_blank">{{ link }}</a>
+              </li>
             </ul>
           </td>
           <!-- TODO add v-else: if not creator, then you can edit task notes but nothing else!-->
           <td v-if="isCreator"><button @click="editTask(task._id)" class="small-button">Edit Task</button></td>
-          <!-- <td v-else><button @click="editTask" class="small-button">Edit Notes</button></td> -->
         </tr>
       </tbody>
     </table>
@@ -109,5 +108,13 @@ onBeforeMount(async () => {
 
 .center {
   text-align: center;
+}
+
+a {
+  color: var(--secondary-accent);
+}
+
+a:hover {
+  color: black;
 }
 </style>

@@ -18,7 +18,7 @@ const project = ref<Record<string, string>>();
 const projectName = ref("");
 const projectCreator = ref("");
 const projectRewards = ref<Array<Record<string, string>>>([]);
-const isUserCreator = ref("");
+const isUserCreator = ref(false);
 const projectMembers = ref<Array<Record<string, string>>>([]);
 const tasks = ref<Array<Record<string, string>>>([]);
 
@@ -41,10 +41,7 @@ const getProject = async () => {
     return "Project Creator Not Found";
   }
 
-  // if creator is current user, then set isUserCreator to ture
-  if (creator == currentUsername) {
-    isUserCreator.value = "true";
-  }
+  isUserCreator.value = creator == currentUsername;
 };
 
 const getProjectMembers = async () => {
@@ -129,9 +126,9 @@ onBeforeMount(async () => {
         <TaskListComponent :project-id="currentProject" :is-creator="isUserCreator" :tasks="tasks" @refresh-tasks="getTasks" @refresh-rewards="getProjectRewards" />
       </div>
       <div class="project-body-container">
-        <AddUserForm v-if="isUserCreator" />
+        <AddUserForm v-if="isUserCreator" @refresh-members="getProjectMembers" />
         <h2>Members</h2>
-        <ProjectMemberListComponent :is-user-creator="isUserCreator" />
+        <ProjectMemberListComponent :members="projectMembers" :is-user-creator="isUserCreator" @refresh-members="getProjectMembers" />
       </div>
     </span>
   </main>

@@ -1,28 +1,16 @@
 <script setup lang="ts">
 import { useProjectStore } from "@/stores/project";
-import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
-import { onBeforeMount, ref } from "vue";
 
-const props = defineProps(["isUserCreator"]);
-const loaded = ref(false);
+const props = defineProps<{
+  members: Record<string, string>[];
+  isUserCreator: boolean;
+}>();
+const emit = defineEmits<{
+  (e: "refreshMembers"): void;
+}>();
 const { currentProject } = storeToRefs(useProjectStore());
-let projectMembers = ref<Array<Record<string, string>>>([]);
-const { currentUsername } = storeToRefs(useUserStore());
-// const member = ref("");
-
-const getProjectMembers = async () => {
-  // get project members here
-  const query: Record<string, string> = { id: currentProject.value };
-  let members;
-  try {
-    members = await fetchy("/api/project/members", "GET", { query });
-  } catch {
-    return;
-  }
-  projectMembers.value = members;
-};
 
 const deleteUser = async (member: Record<string, string>) => {
   const memberString = Object.values(member).join("");
@@ -33,26 +21,18 @@ const deleteUser = async (member: Record<string, string>) => {
   } catch {
     return;
   }
-};
 
-onBeforeMount(async () => {
-  await getProjectMembers();
-  loaded.value = true;
-});
+  emit("refreshMembers");
+};
 </script>
 
 <template>
-  <div class="project-list">
-    <section v-if="loaded && projectMembers.length !== 0">
-      <div class="members-list" v-for="member in projectMembers" :key="member._id">
-        <div class="member-component default-border">{{ member }}</div>
-        <!-- <ProjectComponent @refreshProjects="getProjects" :project="project" /> -->
-        <button @click="deleteUser(member)" class="small-button delete-user" v-if="isUserCreator">Remove</button>
-      </div>
-    </section>
-    <p v-else-if="loaded">You are not currently a member of any projects.</p>
-    <p v-else>Loading...</p>
-  </div>
+  <section class="project-list">
+    <div class="members-list" v-for="member in props.members" :key="member._id">
+      <div class="member-component default-border">{{ member }}</div>
+      <button @click="deleteUser(member)" class="small-button delete-user" v-if="props.isUserCreator">Remove</button>
+    </div>
+  </section>
 </template>
 
 <style scoped>
@@ -64,6 +44,13 @@ onBeforeMount(async () => {
   width: 100%;
 }
 
+.members-list {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5em;
+  width: 100%;
+}
+
 .member-component {
   display: flex;
   flex-direction: column;
@@ -71,14 +58,8 @@ onBeforeMount(async () => {
   padding: 0.5em 1em;
   margin: 0.5em;
   margin-top: 0;
-  width: 75%;
   font-size: 1.1em;
-}
-
-.members-list {
-  display: flex;
-  flex-direction: row;
-  margin: 0.5em;
+  flex-grow: 3;
 }
 
 .small-button {
@@ -88,13 +69,13 @@ onBeforeMount(async () => {
   justify-content: center;
   background-color: var(--secondary-accent);
   border: 2px solid #000000;
-  width: max-content;
   height: 2.5em;
   padding: 0 1.5em;
   border-radius: 4px;
   font-size: 1em;
   transition: 0.2s;
   color: black;
+  flex-grow: 1;
 }
 
 .small-button:hover {

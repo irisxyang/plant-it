@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useProjectStore } from "@/stores/project";
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { defineEmits, ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
+
+const emit = defineEmits(["refreshMembers"]);
 
 const member = ref("");
 
@@ -19,22 +21,21 @@ const addMember = async (member: string) => {
       return "User with that username does not exist";
     }
     memberId = memberObject._id;
-  } catch (_) {
-    return;
-  }
-  try {
     await fetchy("/api/project/members", "POST", {
       body: { id, member: memberId },
     });
   } catch (_) {
     return;
   }
+
+  emit("refreshMembers");
 };
 </script>
 
 <template>
   <form class="create-task-form default-border" @submit.prevent="addMember(member)">
-    <input id="Member Username:" v-model="member" type="text" placeholder="Member Username" required />
+    <label for="Member Username:">Member Username:</label>
+    <input id="Member Username:" v-model="member" type="text" placeholder="Ex: Alice" required />
     <button type="submit" class="small-button">Add Member</button>
   </form>
 </template>

@@ -10,13 +10,13 @@ const member = ref("");
 
 const { currentProject } = storeToRefs(useProjectStore());
 
-const addMember = async (member: string) => {
+const addMember = async () => {
   const id = currentProject.value;
   // convert member username to id
   let memberId;
   // get member id from username
   try {
-    const memberObject = await fetchy(`/api/users/${member}`, "GET");
+    const memberObject = await fetchy(`/api/users/${member.value}`, "GET");
     if (!memberObject) {
       return "User with that username does not exist";
     }
@@ -29,11 +29,12 @@ const addMember = async (member: string) => {
   }
 
   emit("refreshMembers");
+  member.value = "";
 };
 </script>
 
 <template>
-  <form class="create-task-form default-border" @submit.prevent="addMember(member)">
+  <form class="create-task-form default-border" @submit.prevent="addMember()">
     <label for="Member Username:">Member Username:</label>
     <input id="Member Username:" v-model="member" type="text" placeholder="Ex: Alice" required />
     <button type="submit" class="small-button">Add Member</button>

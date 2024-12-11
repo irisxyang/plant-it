@@ -80,10 +80,7 @@ export default class DeadliningConcept {
    * @Throws NotAllowedError if the newTime has already passed
    */
   async updateDeadline(item: ObjectId, newTime: Date) {
-    if (Date.now() > newTime.getTime()) {
-      throw new NotAllowedError(`Can't set a deadline in the past!`);
-    }
-
+    this.assertDeadlineIsInFuture(newTime);
     await this.deadlines.partialUpdateOne({ item }, { time: newTime }, { upsert: true });
     return { msg: "Succesfully updated deadline" };
   }
@@ -97,5 +94,16 @@ export default class DeadliningConcept {
   async deleteDeadline(item: ObjectId) {
     await this.deadlines.deleteOne({ item });
     return { msg: "Succesfully deleted deadline" };
+  }
+
+  /**
+   * Asserts that a deadline is in the future.
+   * @param deadline The deadline to check
+   * @throws NotAllowedError if the deadline is in the past
+   */
+  assertDeadlineIsInFuture(deadline: Date) {
+    if (Date.now() > deadline.getTime()) {
+      throw new NotAllowedError(`Can't set a deadline in the past!`);
+    }
   }
 }

@@ -124,7 +124,7 @@ export default class ProjectConcept {
   }
 
   /**
-   * Asserts that a project name is unique. Requires all names to be unique regardless of owner //TODO verify this is the behavior we want....
+   * Asserts that a project name is unique. Requires all names to be unique regardless of owner
    * @param name Name of the project to check
    * @throws NotAllowedError if name is not unique
    */

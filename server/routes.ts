@@ -196,8 +196,11 @@ class Routes {
       await ProjectMember.assertItemInGroup(projectId, assigneeId);
     }
 
+    const taskDeadline = new Date(deadline);
+    Deadlining.assertDeadlineIsInFuture(taskDeadline);
+
     const taskCreation = await Task.createTask(title, notes, projectId, links, assignee);
-    const deadlineCreation = await Deadlining.createDeadline(taskCreation.task._id, new Date(deadline));
+    const deadlineCreation = await Deadlining.createDeadline(taskCreation.task._id, taskDeadline);
     return {
       msg: `${taskCreation.msg} ${deadlineCreation.msg}`,
       task: taskCreation.task,

@@ -17,10 +17,10 @@ const loaded = ref(false);
 const project = ref<Record<string, string>>();
 const projectName = ref("");
 const projectCreator = ref("");
-const projectRewards = ref<Array<Record<string, string>>>([]);
+const projectRewards = ref<Record<string, string>[]>([]);
 const isUserCreator = ref(false);
-const projectMembers = ref<Array<Record<string, string>>>([]);
-const tasks = ref<Array<Record<string, string>>>([]);
+const projectMembers = ref<string[]>([]);
+const tasks = ref<Record<string, string>[]>([]);
 
 const getProject = async () => {
   const query: Record<string, string> = { id: currentProject.value };
@@ -45,19 +45,19 @@ const getProject = async () => {
 };
 
 const getProjectMembers = async () => {
-  // get project members here
   const query: Record<string, string> = { id: currentProject.value };
   let members;
+
   try {
     members = await fetchy("/api/project/members", "GET", { query });
   } catch {
     return;
   }
+
   projectMembers.value = members;
 };
 
 const getProjectCreator = async () => {
-  //   let query: Record<string, string> = { id: creatorId };
   let creator;
   try {
     creator = await fetchy(`/api/users/username/${project.value?.creator}`, "GET");
@@ -122,7 +122,7 @@ onBeforeMount(async () => {
 
     <span class="project-body">
       <div class="project-body-container">
-        <CreateTaskForm v-if="isUserCreator" @refresh-tasks="getTasks" />
+        <CreateTaskForm v-if="isUserCreator" :members="projectMembers" @refresh-tasks="getTasks" />
         <TaskListComponent :project-id="currentProject" :is-creator="isUserCreator" :tasks="tasks" @refresh-tasks="getTasks" @refresh-rewards="getProjectRewards" />
       </div>
       <div class="project-body-container">

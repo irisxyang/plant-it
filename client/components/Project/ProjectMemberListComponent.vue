@@ -4,7 +4,7 @@ import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 
 const props = defineProps<{
-  members: Record<string, string>[];
+  members: string[];
   isUserCreator: boolean;
 }>();
 const emit = defineEmits<{
@@ -12,9 +12,8 @@ const emit = defineEmits<{
 }>();
 const { currentProject } = storeToRefs(useProjectStore());
 
-const deleteUser = async (member: Record<string, string>) => {
-  const memberString = Object.values(member).join("");
-  const query: Record<string, string> = { id: currentProject.value, memberuser: memberString };
+const deleteUser = async (member: string) => {
+  const query: Record<string, string> = { id: currentProject.value, memberuser: member };
 
   try {
     await fetchy("api/project/members", "DELETE", { query });
@@ -28,7 +27,7 @@ const deleteUser = async (member: Record<string, string>) => {
 
 <template>
   <section class="project-list">
-    <div class="members-list" v-for="member in props.members" :key="member._id">
+    <div class="members-list" v-for="(member, index) in props.members" :key="index">
       <div class="member-component default-border">{{ member }}</div>
       <button @click="deleteUser(member)" class="small-button delete-user" v-if="props.isUserCreator">Remove</button>
     </div>

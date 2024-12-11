@@ -1,68 +1,42 @@
 <script setup lang="ts">
 import { useProjectStore } from "@/stores/project";
 import { storeToRefs } from "pinia";
-import { computed, onBeforeMount, ref } from "vue";
+import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
-const emit = defineEmits(["refreshTasks"]);
+const props = defineProps<{
+  members: string[];
+}>();
+const emit = defineEmits<{ (e: "refreshTasks"): void }>();
+
+const { currentProject } = storeToRefs(useProjectStore());
 
 const title = ref("");
 const notes = ref("");
-const { currentProject } = storeToRefs(useProjectStore());
-const links = ref<string[]>([]);
-const assignee = ref("");
 const deadline = ref("");
+const assignee = ref("");
+const links = ref<string[]>([]);
 
-const projects = ref<Record<string, string>[]>([]);
-const projectMembers = ref<string[]>([]);
-// const emit = defineEmits(["refreshProjects"]);
-
-const createTask = async (title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) => {
+const createTask = async () => {
   try {
     await fetchy("/api/tasks", "POST", {
-      body: { title, notes, project, links, assignee, deadline },
+      body: { title: title.value, notes: notes.value, project: currentProject.value, links: links.value, assignee: assignee.value, deadline: deadline.value },
     });
   } catch (_) {
     return;
   }
 
   emit("refreshTasks");
+  title.value = "";
+  notes.value = "";
+  assignee.value = "";
+  deadline.value = "";
+  links.value = [];
 };
-
-const projectOptions = computed(() =>
-  projects.value.map((project) => ({
-    label: project.name,
-    value: project._id,
-  })),
-);
-
-async function getProjects() {
-  try {
-    const fetchedProjects = await fetchy("api/user/projects", "GET");
-    projects.value = fetchedProjects;
-  } catch (_) {
-    return;
-  }
-}
-
-const getProjectMembers = async (id: string) => {
-  const query: Record<string, string> = { id };
-  try {
-    const members = await fetchy("/api/project/members", "GET", { query });
-    projectMembers.value = members;
-  } catch {
-    return;
-  }
-};
-
-onBeforeMount(async () => {
-  await getProjects();
-  await getProjectMembers(currentProject.value);
-});
 </script>
 
 <template>
-  <form class="create-task-form default-border" @submit.prevent="createTask(title, notes, currentProject, links, assignee, deadline)">
+  <form class="create-task-form default-border" @submit.prevent="createTask()">
     <h2>Add a New Task:</h2>
     <span class="inputs">
       <div class="input-col">
@@ -84,7 +58,7 @@ onBeforeMount(async () => {
           <label for="Assign to:">Assignee:</label>
           <select style="margin-left: 0.5em" id="Assign to:" v-model="assignee" required>
             <option value="" disabled selected>Select a user to assign to</option>
-            <option v-for="member in projectMembers" :key="member" :value="member">{{ member }}</option>
+            <option v-for="member in props.members" :key="member" :value="member">{{ member }}</option>
           </select>
         </span>
       </div>

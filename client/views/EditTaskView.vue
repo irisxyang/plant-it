@@ -11,7 +11,6 @@ const deleteTask = async () => {
   try {
     await fetchy(`/api/tasks/${currentTask.value}`, "DELETE");
   } catch {
-    console.log("Failed to delete task");
     return;
   }
 

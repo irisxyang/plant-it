@@ -6,35 +6,30 @@ import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 import ProjectProgressComponent from "./ProjectProgressComponent.vue";
 
-// const { updateCurrentlyViewingProject } = useProjectStore();
-
-// async function updateCurrentProject(project: Record<string, string>) {
-//     await updateCurrentlyViewingProject(project);
-// }
-
+const props = defineProps(["project"]);
 const emit = defineEmits(["refreshProjects"]);
+
+const { currentUsername } = storeToRefs(useUserStore());
 const { updateCurrentProject } = useProjectStore();
 
 const loaded = ref(false);
-const props = defineProps(["project"]);
-const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
-const projectName = ref(props.project.name);
 const projectCreator = ref("");
-
 const projectMembers = ref<Array<Record<string, string>>>([]);
+const tasks = ref<Record<string, any>[]>([]);
 
 async function updateStoreProject() {
   await updateCurrentProject(props.project._id);
 }
 
 const getProjectCreator = async (creatorId: string) => {
-  //   let query: Record<string, string> = { id: creatorId };
   let creator;
+
   try {
     creator = await fetchy(`/api/users/username/${creatorId}`, "GET");
   } catch (_) {
     return "Project Creator Not Found";
   }
+
   projectCreator.value = creator;
 };
 
@@ -48,20 +43,34 @@ const deleteProject = async () => {
 };
 
 const getProjectMembers = async () => {
-  // get project members here
   const query: Record<string, string> = { id: props.project._id };
   let members;
+
   try {
     members = await fetchy("/api/project/members", "GET", { query });
   } catch {
     return;
   }
+
   projectMembers.value = members;
 };
+
+async function getTasks() {
+  let tasksData;
+
+  try {
+    tasksData = await fetchy(`api/project/tasks`, "GET", { query: { project: props.project._id } });
+  } catch (_) {
+    return;
+  }
+
+  tasks.value = tasksData;
+}
 
 onBeforeMount(async () => {
   await getProjectCreator(props.project.creator);
   await getProjectMembers();
+  await getTasks();
   loaded.value = true;
 });
 </script>
@@ -70,7 +79,7 @@ onBeforeMount(async () => {
   <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" v-if="loaded" class="container default-border">
     <div class="info">
       <div>
-        <div class="project-name">{{ projectName }}</div>
+        <div class="project-name">{{ props.project.name }}</div>
         <p class="project-creator">Creator: {{ projectCreator }}</p>
       </div>
       <div class="row">
@@ -79,7 +88,7 @@ onBeforeMount(async () => {
         </div>
       </div>
     </div>
-    <ProjectProgressComponent :project="project" />
+    <ProjectProgressComponent :tasks="tasks" />
   </RouterLink>
 </template>
 

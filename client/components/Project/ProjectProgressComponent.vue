@@ -1,36 +1,23 @@
 <script setup lang="ts">
-import { fetchy } from "@/utils/fetchy";
-import { onBeforeMount, ref } from "vue";
+import { computed } from "vue";
 
-const props = defineProps(["project"]);
+const props = defineProps<{
+  tasks: Record<string, any>[];
+}>();
 
-const loaded = ref(false);
-let tasks = ref<Record<string, any>[]>([]);
-let progress = ref<number>(0);
-
-async function getTasks() {
-  let tasksData;
-
-  try {
-    tasksData = await fetchy(`api/project/tasks`, "GET", { query: { project: props.project._id } });
-  } catch (_) {
-    return;
+const progress = computed(() => {
+  if (props.tasks.length === 0) {
+    return 0;
   }
-
-  tasks.value = tasksData;
-  progress.value = Math.trunc((tasks.value.filter((task) => task.completion).length / tasks.value.length) * 100);
-}
-
-onBeforeMount(async () => {
-  await getTasks();
-  loaded.value = true;
+  const numCompleted = props.tasks.filter((task) => task.completion).length;
+  return Math.floor((numCompleted / props.tasks.length) * 100);
 });
 </script>
 
 <template>
   <div class="row">
     <div class="percentage">{{ progress }}%</div>
-    <div v-if="loaded && tasks.length !== 0" class="progress-bar-container">
+    <div class="progress-bar-container">
       <div class="full-bar"></div>
       <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
     </div>
@@ -43,6 +30,8 @@ onBeforeMount(async () => {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  gap: 0.5em;
 }
 
 .progress-bar-container {

@@ -2,6 +2,7 @@
 import ProjectGardenComponent from "@/components/Garden/ProjectGardenComponent.vue";
 import AddUserForm from "@/components/Project/AddUserForm.vue";
 import ProjectMemberListComponent from "@/components/Project/ProjectMemberListComponent.vue";
+import ProjectProgressComponent from "@/components/Project/ProjectProgressComponent.vue";
 import CreateTaskForm from "@/components/Task/CreateTaskForm.vue";
 import TaskListComponent from "@/components/Task/TaskListComponent.vue";
 import { useProjectStore } from "@/stores/project";
@@ -114,6 +115,9 @@ onBeforeMount(async () => {
   <main>
     <h1>{{ projectName }}</h1>
     <ProjectGardenComponent :project="project" :rewards="projectRewards" />
+    <div class="project-progress">
+      <ProjectProgressComponent :tasks="tasks" />
+    </div>
     <div class="project-creator">Project Creator: {{ projectCreator }}</div>
 
     <!-- <span>
@@ -154,6 +158,10 @@ main {
 
 .project-name {
   font-size: 1.5em;
+}
+
+.project-progress {
+  width: 40%;
 }
 
 .project-creator {

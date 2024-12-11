@@ -20,12 +20,6 @@ const icons: Map<string, string> = new Map<string, string>([
   ["Flower 7", "reward7.svg"],
 ]);
 
-// on the project page, we get rewards by project and display all of them
-
-//  on the user page, we get rewards by user and display all of them
-
-//  could be cool to add a on-hover feature that displays the task text corresponding
-//  to the reward
 /**
  * concept Rewarding [User, Project, Task]
  */
@@ -44,9 +38,11 @@ export default class RewardingConcept {
     // get a random icon name that user doesn't already have
     const userRewards = new Set((await this.getRewards({ user })).map((reward) => reward.name));
     const newRewards = Array.from(icons.keys()).filter((iconName) => !userRewards.has(iconName));
+
     if (newRewards.length === 0) {
-      throw new NotAllowedError(`You have already reached the maximum number of rewards (${userRewards.size})`);
+      return { msg: `You have already reached the maximum number of rewards (${userRewards.size})` };
     }
+
     await this.assertTaskHasNoReward(task);
     // select random name and icon
     const name = newRewards[Math.floor(Math.random() * newRewards.length)];
@@ -80,9 +76,6 @@ export default class RewardingConcept {
     }
 
     const rewards = await this.rewards.readMany(query);
-    if (task && rewards.length === 0) {
-      throw new NotFoundError(`Task ${task} has no reward associated`);
-    }
     return rewards;
   }
 

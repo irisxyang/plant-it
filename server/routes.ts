@@ -387,7 +387,6 @@ class Routes {
    */
   @Router.get("/rewards/:project")
   async getProjectRewards(project: string) {
-    // return { msg: "project rewards" };
     return await Rewarding.getRewards({
       project: new ObjectId(project),
     });

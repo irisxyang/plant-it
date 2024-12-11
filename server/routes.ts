@@ -132,10 +132,14 @@ class Routes {
    * only creator of project can delete a member from the project
    */
   @Router.delete("/project/members")
-  async deleteMemberFromProject(session: SessionDoc, id: string, member: string) {
+  async deleteMemberFromProject(session: SessionDoc, id: string, memberuser: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(id);
-    const memberToDelete = new ObjectId(member);
+
+    const member = await Authing.getUserByUsername(memberuser);
+    const memberId = member._id;
+
+    const memberToDelete = new ObjectId(memberId);
 
     await Project.assertUserIsCreator(projectId, user);
 

@@ -32,7 +32,7 @@ async function getProjects() {
   let projectResults: Array<Record<string, string>>;
 
   try {
-    projectResults = await fetchy(`/api/user/projects`, "GET");
+    projectResults = await fetchy(`/api/projects`, "GET");
   } catch (_) {
     return;
   }
@@ -67,9 +67,6 @@ async function getData() {
 }
 
 onBeforeMount(async () => {
-  //TODO: should reset or not?
-  // await resetProject();
-  // await resetTask();
   if (isLoggedIn.value) {
     await getData();
   }
@@ -121,13 +118,8 @@ watch(isLoggedIn, async (newVal) => {
           <br />
           Click a garden to navigate to the project page.
         </div>
-        <!-- TODO: separate into different projects, currently displaying all user rewards -->
         <div v-for="(project, index) in projects" :key="project._id">
           <GardenComponent :project="project" :rewards="projectRewards[index] || []" />
-          <!-- <div v-for="reward in rewards" :key="reward._id" class="reward">
-            <h3>{{ reward.name }}</h3>
-            <img :src="`/images/rewards/${reward.icon}`" :alt="reward.icon" />
-          </div> -->
         </div>
       </div>
     </div>

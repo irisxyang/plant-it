@@ -17,8 +17,6 @@ export default class GroupItemConcept {
     this.groupitems = new DocCollection<GroupItemDoc>(collectionName);
   }
 
-  //TODO. Under this current design, if a group is created with only one item and that item is deleted, the entire group is deleted. Groups need to have at least one item to exist
-
   /**
    * Add an item to a group.
    *
@@ -33,12 +31,9 @@ export default class GroupItemConcept {
 
   /**
    * Remove an item from a group
-   *
    * @param group ObjectId of group that you want to remove item from
    * @param item ObjectId of the item you're adding to the group
    * @returns Success Message
-   *
-   * TODO Throw an error if item or group is not found
    */
   async removeGroupItem(group: ObjectId, item: ObjectId) {
     await this.groupitems.deleteOne({ group, item });

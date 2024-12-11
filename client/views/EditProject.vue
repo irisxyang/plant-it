@@ -12,7 +12,6 @@ const { logoutUser, deleteUser } = useUserStore();
 <template>
   <main class="column">
     <h1>Edit Project {{ currentUsername }}</h1>
-
     <EditProjectForm />
   </main>
 </template>

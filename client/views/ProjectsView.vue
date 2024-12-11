@@ -11,7 +11,7 @@ async function getProjects() {
   let projectResults;
 
   try {
-    projectResults = await fetchy(`/api/user/projects`, "GET");
+    projectResults = await fetchy(`/api/projects`, "GET");
   } catch (_) {
     return;
   }

@@ -23,13 +23,14 @@ const projectMembers = ref<string[]>([]);
 const tasks = ref<Record<string, string>[]>([]);
 
 const getProject = async () => {
-  const query: Record<string, string> = { id: currentProject.value };
   let proj;
+
   try {
-    proj = await fetchy("/api/projects", "GET", { query });
+    proj = await fetchy(`/api/projects/${currentProject.value}`, "GET");
   } catch {
     return;
   }
+
   project.value = proj;
   projectName.value = proj.name;
 

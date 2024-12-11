@@ -18,10 +18,6 @@ const createProject = async (name: string) => {
     return;
   }
 
-  // TODO: update store with current projectID
-  // (indicate which project we're looking at)
-  // and then navigate to add user form
-  // void router.push({ name: "AddUser" });
   await updateCurrentProject(project.project._id);
   void router.push({ name: "ProjectPage" });
 };

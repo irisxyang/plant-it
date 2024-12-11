@@ -10,13 +10,14 @@ const assignee = ref(props.task.assignee);
 const projectName = ref("");
 
 const getProjectName = async () => {
-  let query: Record<string, string> = { id: props.task.project };
   let project;
+
   try {
-    project = await fetchy("/api/projects", "GET", { query });
+    project = await fetchy(`/api/projects/${props.task.project}`, "GET");
   } catch (_) {
     return;
   }
+
   projectName.value = project.name;
 };
 

@@ -16,9 +16,23 @@ class Routes {
   // Synchronize the concepts from `app.ts`.
 
   /**
-   * create project
-   * creator will be current session user with given name
-   * name must be unique
+   * Get projects that a user is a part of
+   * @param session The session of the user to get the projects for
+   * @returns Array of projects that the user is a part of
+   * @throws NotAllowedError if user is not logged in (i.e. session is not valid)
+   */
+  @Router.get("/projects")
+  async getUserProjects(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    const projectIds = await ProjectMember.getGroupsForItem(user);
+    return await Project.getProjectsByIds(projectIds);
+  }
+
+  /**
+   * Create a new project
+   * @param session The session of the user requesting the creation
+   * @param name The name of the project to create
+   * @returns Success message and the new project
    */
   @Router.post("/projects")
   async createProject(session: SessionDoc, name: string) {
@@ -32,8 +46,25 @@ class Routes {
   }
 
   /**
-   * delete project
-   * only the creator of the project can delete the project
+   * Get a project by its id
+   * @param id The id of the project to fetch
+   * @returns The project with the given id
+   * @throws NotAllowedError if project does not exist or user is not in project
+   */
+  @Router.get("/projects/:id")
+  async getProject(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const projectId = new ObjectId(id);
+    await ProjectMember.assertItemInGroup(projectId, user);
+    return await Project.getProjectById(projectId);
+  }
+
+  /**
+   * Delete a project
+   * @param id The id of the project to delete
+   * @returns Success message
+   * @throws NotAllowedError if user is not the creator of the project
+   * @throws NotFoundError if project does not exist
    */
   @Router.delete("/projects/:id")
   async deleteProject(session: SessionDoc, id: string) {
@@ -46,38 +77,6 @@ class Routes {
     // delete all tasks associated with the project
     await Task.deleteTasksForProject(projectId);
     return await Project.deleteProject(projectId);
-  }
-
-  /**
-   * get project given either a name or ID
-   * TODO: get project by name... not necessary if names not unique across users?
-   */
-  @Router.get("/projects")
-  async getProject(session: SessionDoc, name?: string, id?: string) {
-    const user = Sessioning.getUser(session);
-    let project;
-    let projectId;
-    if (id) {
-      projectId = new ObjectId(id);
-      await ProjectMember.assertItemInGroup(projectId, user);
-      project = await Project.getProjectById(projectId);
-    } else if (name) {
-      project = await Project.getProjectByName(name, user);
-    } else {
-      throw new NotAllowedError("Did not specify project to fetch!");
-    }
-    return project;
-  }
-
-  /**
-   * get projects that a user is a part of
-   */
-  @Router.get("/user/projects")
-  async getUserProjects(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    const projectIds = await ProjectMember.getGroupsForItem(user);
-
-    return await Project.getProjectsByIds(projectIds);
   }
 
   /**
@@ -170,14 +169,19 @@ class Routes {
     return await Task.getTaskById(taskId);
   }
 
-  /**
-   * create task
-   * only project manager can create tasks for that project
-   * TODO: consider if we should limit task title length (ex: 100 characters)
-   * TODO: decide if tasks must be assigned deadlines? currently required.
-   * assignee is required arg, set to '' if unassigned
-   */
+  // TODO: decide if tasks must be assigned deadlines? currently required.
   @Router.post("/tasks")
+  /**
+   * Create a new task with a deadline. Only the project manager can create a task.
+   * @param session The user's session
+   * @param title Title of the task
+   * @param notes Notes about the task
+   * @param project ObjectId of the project that the task belongs to
+   * @param links Array of links to the task
+   * @param assignee Optional Param, ObjectId of the user the task is assigned to. Defaults to null for unassigned tasks
+   * @param deadline Deadline for the task in ISO format
+   * @returns Object with a success message (msg) and the task created (task)
+   */
   async createTask(session: SessionDoc, title: string, notes: string, project: string, links: string[], assignee: string, deadline: string) {
     const user = Sessioning.getUser(session);
     const projectId = new ObjectId(project);
@@ -265,10 +269,6 @@ class Routes {
     const taskId = new ObjectId(id);
     return await Deadlining.updateDeadline(taskId, new Date(date));
   }
-
-  // TODO: add fn to get tasks with deadlines that are close?
-  // TODO: add fn to get tasks whose deadlines are before / after some date?
-  // just some ideas for functionality
 
   /**
    * get all tasks for a project from string of the projectId

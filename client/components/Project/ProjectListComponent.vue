@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
-import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 import ProjectComponent from "./ProjectComponent.vue";
 
 const loaded = ref(false);
 let projects = ref<Array<Record<string, string>>>([]);
-const { currentUsername } = storeToRefs(useUserStore());
 
 async function getProjects() {
   try {
-    const fetchedProjects = await fetchy("api/user/projects", "GET");
+    const fetchedProjects = await fetchy("api/projects", "GET");
     projects.value = fetchedProjects;
   } catch (_) {
     return;

@@ -50,22 +50,6 @@ export default class ProjectConcept {
   }
 
   /**
-   * Get project by name and creator
-   * @param name Name of the project
-   * @param creator Creator of the project
-   * @returns The project
-   * @throws NotFoundError if no project  is found
-   * TODO: is this necessary if we don't have unique names across users?
-   */
-  async getProjectByName(name: string, creator: ObjectId) {
-    const result = await this.projects.readMany({ name, creator });
-    if (!result) {
-      throw new NotFoundError(`Project with name ${name} and creator ${creator} not found`);
-    }
-    return result;
-  }
-
-  /**
    * given list of project object ids, returns the projects
    * @param ids list of project object ids
    * @returns

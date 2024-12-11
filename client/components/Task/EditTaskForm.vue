@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import router from "@/router";
 import { useTaskStore } from "@/stores/task";
-import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 
 const loaded = ref(false);
 const { currentTask } = storeToRefs(useTaskStore());
-const { currentUsername } = storeToRefs(useUserStore());
 const task = ref<Record<string, any>>({});
 
 const projectMembers = ref<string[]>([]);

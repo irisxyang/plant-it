@@ -225,21 +225,22 @@ class Routes {
   }
 
   /**
-   * delete task
-   * only project manager can delete tasks for that project
+   * Delete a task
+   * @param session SessionDoc of the user deleting the task
+   * @param id ObjectId of the task to delete
    */
   @Router.delete("/tasks/:id")
-  async deleteTask(session: SessionDoc, task: string) {
+  async deleteTask(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
-    const taskId = new ObjectId(task);
+    const taskId = new ObjectId(id);
 
     const projectId = (await Task.getTaskById(taskId))?.project;
     if (!projectId) {
       throw new NotAllowedError("Task does not exist!");
     }
     await Project.assertUserIsCreator(projectId, user);
-
-    await Task.deleteTask(taskId);
+    await Deadlining.deleteDeadline(taskId);
+    return await Task.deleteTask(taskId);
   }
 
   /**

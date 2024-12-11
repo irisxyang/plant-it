@@ -1,22 +1,29 @@
 <script setup lang="ts">
 import EditTaskForm from "@/components/Task/EditTaskForm.vue";
-import { useProjectStore } from "@/stores/project";
-import { useUserStore } from "@/stores/user";
+import router from "@/router";
+import { useTaskStore } from "@/stores/task";
+import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 
-const { currentUsername } = storeToRefs(useUserStore());
-const { currentProject } = storeToRefs(useProjectStore());
-const { logoutUser, deleteUser } = useUserStore();
+const { currentTask } = storeToRefs(useTaskStore());
 
-//TODO: add delete task functionality
+const deleteTask = async () => {
+  try {
+    await fetchy(`/api/tasks/${currentTask.value}`, "DELETE");
+  } catch {
+    console.log("Failed to delete task");
+    return;
+  }
+
+  void router.push({ name: "ProjectPage" });
+};
 </script>
 
 <template>
-  <main class="column">
+  <main v-if="currentTask !== ''" class="column">
     <h1>Edit Task</h1>
-
     <EditTaskForm />
-    <div class="main-button">Delete Task</div>
+    <div class="main-button" @click="deleteTask">Delete Task</div>
   </main>
 </template>
 

@@ -87,4 +87,15 @@ export default class DeadliningConcept {
     await this.deadlines.partialUpdateOne({ item }, { time: newTime }, { upsert: true });
     return { msg: "Succesfully updated deadline" };
   }
+
+  /**
+   * Delete a deadline
+   * @param item ObjectId of the item to delete
+   * @returns Success message
+   * @throws NotFoundError if the deadline does not exist
+   */
+  async deleteDeadline(item: ObjectId) {
+    await this.deadlines.deleteOne({ item });
+    return { msg: "Succesfully deleted deadline" };
+  }
 }

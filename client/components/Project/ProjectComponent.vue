@@ -67,29 +67,36 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" v-if="loaded" class="project-full-container default-border">
-    <div>
-      <div class="project-name">{{ projectName }}</div>
-      <p class="project-creator">Creator: {{ projectCreator }}</p>
-    </div>
-    <div class="row">
-      <ProjectProgressComponent :project="project" />
-      <div class="project-buttons" v-if="projectCreator == currentUsername">
-        <button class="small-button" @click="deleteProject">Delete Project</button>
+  <RouterLink :to="{ name: 'ProjectPage' }" @click="updateStoreProject" v-if="loaded" class="container default-border">
+    <div class="info">
+      <div>
+        <div class="project-name">{{ projectName }}</div>
+        <p class="project-creator">Creator: {{ projectCreator }}</p>
+      </div>
+      <div class="row">
+        <div class="project-buttons" v-if="projectCreator == currentUsername">
+          <button class="small-button" @click="deleteProject">Delete Project</button>
+        </div>
       </div>
     </div>
+    <ProjectProgressComponent :project="project" />
   </RouterLink>
 </template>
 
 <style scoped>
-.project-full-container {
+.container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1em;
+  gap: 0.5em;
+  width: 400px;
+}
+
+.info {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1em;
-  margin: 0.5em;
-  width: 400px;
 }
 
 .project-name {
